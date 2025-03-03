@@ -1,19 +1,19 @@
 # INFO5144-GameProject
 2D Physics-Based Game using  React Native Game Engine &amp; Matter.js
 
-📌 INFO5144 - Game Project
+## 📌 INFO5144 - Game Project ##
 Course: INFO5144  
 Professor: Priyank Bhatt  
 Group Members: Nattar and Elisha  
 
 ---
 
-🎲 Introduction
+## 🎲 Introduction ##
 This project is a 2D platform game where the player must collect coins, avoid enemies, and complete levels while utilizing physics-based mechanics. The game includes collision detection, power-ups, scoring, UI controls, and level transitions.
 
 ---
 
-🚀 Features
+## 🚀 Features ##
 ✅ Welcome Screen - Displays game title, instructions, and creator names.  
 ✅ Rigid Bodies - Includes the player, coins, power-ups, enemies.  
 ✅ UI Controls - Start & restart buttons for game flow.  
@@ -26,7 +26,7 @@ This project is a 2D platform game where the player must collect coins, avoid en
 
 ---
 
-📝 Tech Stack
+## 📝 Tech Stack ##
 - React Native
 - React Native Game Engine
 - Matter.js (Physics Engine)
@@ -34,7 +34,7 @@ This project is a 2D platform game where the player must collect coins, avoid en
 
 ---
 
-▶️ How to Play
+## ▶️ How to Play ##
 - Move Left/Right: Tap the left/right buttons.
 - Jump: Tap the jump button.
 - Collect Coins: Increase your score.
