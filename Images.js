@@ -18,6 +18,9 @@ const Images = {
   bigRock: require("./assets/background/bigRock.png"),
   tallRock: require("./assets/background/tallRock.png"),
   pause: require("./assets/pause.png"),
+  jumpPaw: require("./assets/jumpPaw.png"),
+  restart: require("./assets/restart.png"),
+  forest: require("./assets/background/forest.png"),
 };
 
 export default Images;
