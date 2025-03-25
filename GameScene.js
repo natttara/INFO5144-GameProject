@@ -1,6 +1,7 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
 import { GameEngine } from "react-native-game-engine";
+import MovementSystem from "./systems/MovementSystem";
 import entities from "./entities";
 
 const GameScene = () => {
@@ -8,7 +9,7 @@ const GameScene = () => {
     <View style={styles.container}>
       <GameEngine
         style={styles.gameContainer}
-        systems={[]}
+        systems={[MovementSystem]}
         entities={entities()}
       />
     </View>

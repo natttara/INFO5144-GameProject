@@ -5,15 +5,16 @@ import Matter from "matter-js";
 const Floor = (props) => {
   const width = props.size.width;
   const height = props.size.height;
-  const x = props.body.position.x - width / 2;
-  const y = props.body.position.y - height / 2;
+  const x = Math.round(props.body.position.x - width / 2);
+  const y = Math.round(props.body.position.y - height / 2);
+  const offsetX = Math.round(props.offsetX || 0);
 
   return (
     <Image
       source={props.image}
       style={{
         position: "absolute",
-        left: x,
+        left: x - offsetX,
         top: y,
         width: width,
         height: height,
@@ -25,10 +26,17 @@ const Floor = (props) => {
 
 // Matter.js physics wrapper
 export default (world, pos, size, image) => {
-  const body = Matter.Bodies.rectangle(pos.x, pos.y, size.width, size.height, {
-    isStatic: true, // Floor should not move
-    label: "Floor",
-  });
+  const body = Matter.Bodies.rectangle(
+    Math.round(pos.x),
+    Math.round(pos.y),
+    size.width,
+    size.height,
+    {
+      isStatic: true, // Floor should not move
+      label: "Floor",
+      friction: 1,
+    }
+  );
 
   Matter.World.add(world, [body]);
 
@@ -36,6 +44,7 @@ export default (world, pos, size, image) => {
     body,
     size,
     image,
-    renderer: <Floor body={body} size={size} image={image} />,
+    offsetX: 0,
+    renderer: <Floor body={body} size={size} image={image} offsetX={0} />,
   };
 };
