@@ -1,10 +1,11 @@
 import Constants from "../Constants";
 
-const MovementSystem = (entities, { time }) => {
+const MovementSystem = (entities, { time, dispatch }) => {
   const floor1 = entities.floor1;
   const floor2 = entities.floor2;
   const scrollSpeed = 2;
   const screenWidth = Constants.SCREEN_WIDTH;
+  const backgroundWidth = 800;
 
   if (floor1 && floor2) {
     floor1.offsetX += scrollSpeed;
@@ -29,6 +30,12 @@ const MovementSystem = (entities, { time }) => {
         offsetX={Math.round(floor2.offsetX)}
       />
     );
+
+    dispatch({
+      type: "floor-offset",
+      offsetX: time.current,
+      backgroundWidth,
+    });
   }
 
   return entities;

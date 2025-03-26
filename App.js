@@ -82,49 +82,6 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000",
-    backgroundColor: '#000',
-  },
-  backgroundLayer: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-  },
-  welcome: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    top: -50
-  },
-  welcomeText: {
-    fontFamily: 'BakBak One',
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: 'white',
-    textShadowColor: 'rgba(0, 0, 0, 0.75)',
-    textShadowOffset: { width: -1, height: 1 },
-    textShadowRadius: 10,
-  },
-  button: {
-    backgroundColor: "#FF4444",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-    marginTop: 20,
-    borderWidth: 2,
-    borderColor: '#000',
-  },
-  buttonText: {
-    fontFamily: 'BakBak One',
-    fontSize: 22,
-    fontWeight: "bold",
-    color: 'white',
-  },
-  catsContainer: {
-    position: 'absolute',
-    bottom: 170,
-    width: '100%',
-    alignItems: 'center',
-    zIndex: 5,
+    // backgroundColor: "#000",
   },
 });
