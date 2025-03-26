@@ -1,9 +1,18 @@
+import { StatusBar } from "expo-status-bar";
+import { StyleSheet, View } from "react-native";
+import GameScene from "./GameScene";
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, TouchableOpacity, ImageBackground, Animated } from 'react-native';
 import React, { useState, useRef, useEffect } from 'react';
 import Cat from './components/Cat';
 
 export default function App() {
+  return (
+    <View style={styles.container}>
+      <GameScene />
+      <StatusBar style="light" />
+    </View>
+  );
   const [welcome, setWelcome] = useState(true);
   const catFade = useRef(new Animated.Value(0)).current;
   const catY = useRef(new Animated.Value(20)).current;
@@ -73,6 +82,7 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#000",
     backgroundColor: '#000',
   },
   backgroundLayer: {
