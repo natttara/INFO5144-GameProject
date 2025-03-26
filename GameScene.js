@@ -4,7 +4,9 @@ import { GameEngine } from "react-native-game-engine";
 import MovementSystem from "./systems/MovementSystem";
 import entities from "./entities";
 import PauseButton from "./components/PauseButton";
+import JumpButton from "./components/JumpButton";
 import Background from "./components/Background";
+import Cat from "./components/Cat";
 
 const GameScene = () => {
   const [isRunning, setIsRunning] = useState(true);
@@ -14,6 +16,10 @@ const GameScene = () => {
 
   const togglePause = () => {
     setIsRunning(!isRunning);
+  };
+
+  const handleJump = () => {
+    <Cat action="jump" size={100} style={styles.cat} isRunning={isRunning} />;
   };
 
   const onEvent = (e) => {
@@ -34,7 +40,9 @@ const GameScene = () => {
         running={isRunning}
         onEvent={onEvent}
       />
+      <Cat action="run" size={100} style={styles.cat} isRunning={isRunning} />
       <PauseButton onPress={togglePause} />
+      <JumpButton onPress={handleJump} />
     </View>
   );
 };
@@ -49,6 +57,12 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
+  },
+  cat: {
+    position: "absolute",
+    bottom: 175,
+    left: 60,
+    zIndex: 2,
   },
 });
 
