@@ -31,7 +31,6 @@ const MovementSystem = (entities, { time, dispatch }) => {
       />
     );
 
-    // Just pass the current time to trigger background updates
     dispatch({
       type: "floor-offset",
       offsetX: time.current,

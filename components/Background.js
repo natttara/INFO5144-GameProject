@@ -4,9 +4,8 @@ import Images from "../Images";
 
 const Background = ({ offsetX, backgroundWidth }) => {
   const [backgroundOffset, setBackgroundOffset] = useState(0);
-  //   const parallaxSpeed = 0.15; // Slower speed for a more subtle parallax effect
   const parallaxSpeed = 0.3;
-  const imageWidth = 1363; // Width of the forest image
+  const imageWidth = 1363;
 
   useEffect(() => {
     setBackgroundOffset((prevOffset) => {
@@ -67,7 +66,7 @@ const styles = StyleSheet.create({
   imageContainer: {
     flex: 1,
     overflow: "hidden",
-    marginTop: 40, // Add margin to account for the top bar
+    marginTop: 40,
   },
   backgroundImage: {
     position: "absolute",
