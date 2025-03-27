@@ -5,6 +5,7 @@ import SpriteSheet from "rn-sprite-sheet";
 const Cat = ({ action = "idle", style, size = 180, isRunning = true }) => {
   //"If the Cat component is used without passing the action prop, default it to 'idle'."//
   const catRef = useRef(null);
+  const prevActionRef = useRef(); //store the previous action value between renders — without causing a re-render.
 
   const animations = {
     idle: [0, 1, 2, 3, 4, 5, 6],
@@ -30,11 +31,20 @@ const Cat = ({ action = "idle", style, size = 180, isRunning = true }) => {
     attack: 3,
   };
 
+  // useEffect(() => {
+  //   if (catRef.current) {
+  //     console.log("Action changed to:", action);
+  //     if (action === "jump") {
+  //       console.log("Starting jump animation");
+
   useEffect(() => {
-    if (catRef.current) {
-      console.log("Action changed to:", action);
+    const prevAction = prevActionRef.current;
+
+    if (catRef.current && action !== prevAction) {
+      prevActionRef.current = action;
+
       if (action === "jump") {
-        console.log("Starting jump animation");
+        catRef.current.stop();
         catRef.current.play({
           type: "jump",
           fps: 12,
