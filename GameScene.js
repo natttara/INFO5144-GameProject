@@ -17,17 +17,19 @@ const GameScene = () => {
   const gameEngineRef = useRef(null);
   const jumpY = useRef(new Animated.Value(0)).current;
   const jumpSoundRef = useRef(null);
+  const backgroundSoundRef = useRef(null);
 
   // Load jump sound once
   useEffect(() => {
-    const loadSound = async () => {
+    const loadJumpSound = async () => {
       const { sound } = await Audio.Sound.createAsync(
-        require("./assets/sounds/Jump.mp3")
+        require("./assets/sounds/Jump.mp3"),
+        { isLooping: false, volume: 0.4 }
       );
       jumpSoundRef.current = sound;
     };
 
-    loadSound();
+    loadJumpSound();
 
     return () => {
       if (jumpSoundRef.current) {
@@ -35,6 +37,36 @@ const GameScene = () => {
       }
     };
   }, []);
+
+  // Load and play background music
+  useEffect(() => {
+  let isMounted = true;
+
+  const loadAndPlayMusic = async () => {
+    try {
+      const { sound } = await Audio.Sound.createAsync(
+        require("./assets/sounds/bgSound-2.mp3"),
+        { isLooping: true, volume: 1 }
+      );
+      if (isMounted) {
+        backgroundSoundRef.current = sound;
+        await sound.playAsync();
+        console.log("Background music playing...");
+      }
+    } catch (error) {
+      console.warn("Failed to load background music:", error);
+    }
+  };
+
+  loadAndPlayMusic();
+
+  return () => {
+    isMounted = false;
+    if (backgroundSoundRef.current) {
+      backgroundSoundRef.current.unloadAsync();
+    }
+  };
+}, []);
 
   const togglePause = () => {
     setIsRunning(!isRunning);
