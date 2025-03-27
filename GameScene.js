@@ -18,9 +18,7 @@ const GameScene = () => {
     setIsRunning(!isRunning);
   };
 
-  const handleJump = () => {
-    <Cat action="jump" size={100} style={styles.cat} isRunning={isRunning} />;
-  };
+  const handleJump = () => {};
 
   const onEvent = (e) => {
     if (e.type === "floor-offset") {

@@ -41,10 +41,10 @@ export default (gameWorld) => {
   const entities = {
     physics: { engine, world },
 
-    cat: {
+    cat: Cat({
       body: catBody,
       size: catSize,
-    },
+    }),
 
     floor1: Floor(
       world,

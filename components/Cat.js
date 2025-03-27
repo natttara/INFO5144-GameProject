@@ -35,12 +35,9 @@ const Cat = ({ action = "idle", style, size = 180, isRunning = true }) => {
       console.log("Action changed to:", action);
       if (action === "jump") {
         console.log("Starting jump animation");
-        // Stop any current animation
-        catRef.current.stop();
-        // Play jump animation once
         catRef.current.play({
           type: "jump",
-          fps: 12, // Increased FPS for smoother animation
+          fps: 12,
           loop: false,
           onComplete: () => {
             console.log("Jump animation completed");
