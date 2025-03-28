@@ -18,8 +18,7 @@ const GameScene = () => {
   const gameEngineRef = useRef(null);
   const jumpY = useRef(new Animated.Value(0)).current;
   const jumpSoundRef = useRef(null);
-  const backgroundSoundRef = useRef(null);
-
+  const backgroundSoundRef = useRef(null);  
   // Load jump sound once
   useEffect(() => {
     const loadJumpSound = async () => {
@@ -46,7 +45,7 @@ const GameScene = () => {
   const loadAndPlayMusic = async () => {
     try {
       const { sound } = await Audio.Sound.createAsync(
-        require("./assets/sounds/bgSound-2.mp3"),
+        require("./assets/sounds/bgSound-1.mp3"),
         { isLooping: true, volume: 1 }
       );
       if (isMounted) {
@@ -84,13 +83,13 @@ const GameScene = () => {
 
       Animated.sequence([
         Animated.timing(jumpY, {
-          toValue: -80, // jump height
-          duration: 300,
+          toValue: -180, // jump height
+          duration: 350,
           useNativeDriver: true,
         }),
         Animated.timing(jumpY, {
           toValue: 0, 
-          duration: 300,
+          duration: 350,
           useNativeDriver: true,
         }),
       ]).start(() => {
