@@ -8,6 +8,7 @@ import JumpButton from "./components/JumpButton";
 import Background from "./components/Background";
 import Cat from "./components/Cat";
 import { Audio } from "expo-av";
+import CoinObstacleSystem from "./systems/CoinObstacleSystem";
 
 const GameScene = () => {
   const [isRunning, setIsRunning] = useState(true);
@@ -111,7 +112,7 @@ const GameScene = () => {
       <GameEngine
         ref={gameEngineRef}
         style={styles.gameContainer}
-        systems={[MovementSystem]}
+        systems={[MovementSystem, CoinObstacleSystem]}
         entities={entities()}
         running={isRunning}
         onEvent={onEvent}
