@@ -6,6 +6,13 @@ const MovementSystem = (entities, { time, dispatch }) => {
   const scrollSpeed = 2;
   const screenWidth = Constants.SCREEN_WIDTH;
   const backgroundWidth = 800;
+  const coin = entities.coin?.body;
+  const obstacle = entities.obstacle?.body;
+
+  // Add lastDispatchTime to physics state if not present
+  if (!entities.physics.lastDispatchTime) {
+    entities.physics.lastDispatchTime = 0;
+  }
 
   if (floor1 && floor2) {
     floor1.offsetX += scrollSpeed;
@@ -31,9 +38,30 @@ const MovementSystem = (entities, { time, dispatch }) => {
       />
     );
 
+  }
+    // Move coin
+  if (coin) {
+    coin.position.x -= scrollSpeed;
+  }
+
+  // Move obstacle
+  if (obstacle) {
+    obstacle.position.x -= scrollSpeed;
+  }
+
+    // dispatch({
+    //   type: "floor-offset",
+    //   offsetX: time.current,
+    //   backgroundWidth,
+    // });
+
+  // Dispatch once every 1000ms
+  if (time.current - entities.physics.lastDispatchTime > 1000) {
+    entities.physics.lastDispatchTime = time.current;
+
     dispatch({
       type: "floor-offset",
-      offsetX: time.current,
+      offsetX: floor1?.offsetX || 0,
       backgroundWidth,
     });
   }

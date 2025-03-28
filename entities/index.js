@@ -3,6 +3,8 @@ import Constants from "../Constants";
 import Images from "../Images";
 import Floor from "../components/Floor";
 import Cat from "../components/Cat";
+import Coin from "../components/Coin";
+import Obstacle from "../components/Obstacle";
 
 export default (gameWorld) => {
   let engine = Matter.Engine.create({ enableSleeping: false });
@@ -25,6 +27,7 @@ export default (gameWorld) => {
     catSize,
     catSize,
     {
+      label: "cat",
       friction: 0.1,
       restitution: 0.2,
       density: 1,
@@ -36,15 +39,58 @@ export default (gameWorld) => {
     }
   );
 
-  Matter.World.add(world, [catBody]);
+  // Create coin
+  const coin = Matter.Bodies.circle(400, screenHeight - 250, 20, {
+    isSensor: true,
+    isStatic: true,
+    label: "coin",
+    render: { visible: false },
+  });
+
+  // Create obstacle
+  const obstacle = Matter.Bodies.rectangle(700, screenHeight - 250, 50, 100, {
+    isStatic: true,
+    label: "obstacle",
+    render: { visible: false },
+  });
+
+  Matter.World.add(world, [catBody, coin, obstacle]);
+
+  // Collision detection
+  Matter.Events.on(engine, "collisionStart", (event) => {
+    event.pairs.forEach(({ bodyA, bodyB }) => {
+      const labels = [bodyA.label, bodyB.label];
+
+      if (labels.includes("cat") && labels.includes("coin")) {
+        gameWorld.dispatch({ type: "coin-collected" });
+        Matter.World.remove(world, coin); // remove the coin from the world
+      }
+
+      if (labels.includes("cat") && labels.includes("obstacle")) {
+        gameWorld.dispatch({ type: "hit-obstacle" });
+      }
+    });
+  });
 
   const entities = {
-    physics: { engine, world },
+    physics: { engine, world }, lastDispatchTime: 0, // For safe dispatch throttling
 
     cat: Cat({
       body: catBody,
       size: catSize,
     }),
+
+    coin: {
+      body: coin,
+      size: [40, 40],
+      renderer: Coin,
+    },
+
+    obstacle: {
+      body: obstacle,
+      size: [50, 100],
+      renderer: Obstacle,
+    },
 
     floor1: Floor(
       world,

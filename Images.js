@@ -21,6 +21,7 @@ const Images = {
   jumpPaw: require("./assets/jumpPaw.png"),
   restart: require("./assets/restart.png"),
   forest: require("./assets/background/forest.png"),
+  coin: require("./assets/coin.png"),
 };
 
 export default Images;
