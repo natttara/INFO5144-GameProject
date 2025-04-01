@@ -121,7 +121,6 @@ const GameScene = () => {
   const handleRestart = () => {
     setIsRunning(false);
     setTimeout(() => {
-      setGameEntities(initialEntities());
       setIsRunning(true);    
     }, 100);
   };

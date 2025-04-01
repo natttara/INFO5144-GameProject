@@ -26,11 +26,11 @@ const StartScreen = ({ onStart }) => {
   };
 
   const handleStartPress = async () => {
-  await playSound(); // play the sound first
-  setTimeout(() => {
-    onStart();       // start the game after 1 seconds
-  }, 1000);
-};
+    await playSound(); // play the sound first
+    setTimeout(() => {
+      onStart();       // start the game after 1 seconds
+    }, 1000);
+  };
 
   useEffect(() => {
     Animated.parallel([
