@@ -9,6 +9,7 @@ import Background from "./components/Background";
 import Cat from "./components/Cat";
 import { Audio } from "expo-av";
 import CoinObstacleSystem from "./systems/CoinObstacleSystem";
+import PauseScreen from "./components/PauseScreen";
 
 const GameScene = () => {
   const [isRunning, setIsRunning] = useState(true);
@@ -18,7 +19,9 @@ const GameScene = () => {
   const gameEngineRef = useRef(null);
   const jumpY = useRef(new Animated.Value(0)).current;
   const jumpSoundRef = useRef(null);
-  const backgroundSoundRef = useRef(null);  
+  const backgroundSoundRef = useRef(null); 
+  const [showPauseScreen, setShowPauseScreen] = useState(false);
+
   // Load jump sound once
   useEffect(() => {
     const loadJumpSound = async () => {
@@ -45,7 +48,7 @@ const GameScene = () => {
   const loadAndPlayMusic = async () => {
     try {
       const { sound } = await Audio.Sound.createAsync(
-        require("./assets/sounds/bgSound-1.mp3"),
+        require("./assets/sounds/bgSound-2.mp3"),
         { isLooping: true, volume: 1 }
       );
       if (isMounted) {
@@ -68,9 +71,18 @@ const GameScene = () => {
   };
 }, []);
 
+  // const togglePause = () => {
+  //   setIsRunning(!isRunning);
+  // };
+
+  //for Pause screen
   const togglePause = () => {
-    setIsRunning(!isRunning);
-  };
+  setIsRunning(prev => {
+    const newRunning = !prev;
+    setShowPauseScreen(!newRunning);
+    return newRunning;
+  });
+};
 
   const handleJump = () => {
     if (catAction !== "jump") {
@@ -123,6 +135,16 @@ const GameScene = () => {
       
       <PauseButton onPress={togglePause} />
       <JumpButton onPress={handleJump} />
+
+      {/* pause screen */}
+      {showPauseScreen && (
+        <PauseScreen
+          onResume={togglePause}
+          onExit={() => {
+            setShowPauseScreen(false);
+          }}
+        />
+      )}
     </View>
   );
 };
