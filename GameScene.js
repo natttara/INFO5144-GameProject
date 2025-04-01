@@ -10,6 +10,7 @@ import Cat from "./components/Cat";
 import { Audio } from "expo-av";
 import CoinObstacleSystem from "./systems/CoinObstacleSystem";
 import PauseScreen from "./components/PauseScreen";
+import RestartButton from "./components/RestartButton";
 
 const GameScene = () => {
   const [isRunning, setIsRunning] = useState(true);
@@ -117,6 +118,14 @@ const GameScene = () => {
     }
   };
 
+  const handleRestart = () => {
+    setIsRunning(false);
+    setTimeout(() => {
+      setGameEntities(initialEntities());
+      setIsRunning(true);    
+    }, 100);
+  };
+
   return (
     <View style={styles.container}>
       <Background offsetX={offsetX} backgroundWidth={backgroundWidth} />
@@ -133,8 +142,11 @@ const GameScene = () => {
         <Cat action={catAction} size={100} isRunning={isRunning} />
       </Animated.View>
       
-      <PauseButton onPress={togglePause} />
-      <JumpButton onPress={handleJump} />
+      <View style={styles.controlsRow}>
+        <JumpButton onPress={handleJump} />
+        <PauseButton onPress={togglePause} />
+        <RestartButton onPress={handleRestart} />
+      </View>
 
       {/* pause screen */}
       {showPauseScreen && (
@@ -159,6 +171,16 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
+  },
+  controlsRow: {
+    position: "absolute",
+    bottom: 20,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+    alignItems: "center",
+    zIndex: 1,
   },
   cat: {
     position: "absolute",

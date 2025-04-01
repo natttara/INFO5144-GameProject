@@ -2,10 +2,10 @@ import React from "react";
 import { TouchableOpacity, Image, StyleSheet } from "react-native";
 import Images from "../Images";
 
-const PauseButton = ({ onPress }) => {
+const RestartButton = ({ onPress }) => {
   return (
     <TouchableOpacity style={styles.button} onPress={onPress}>
-      <Image source={Images.pause} style={styles.image} />
+      <Image source={Images.restart} style={styles.image} />
     </TouchableOpacity>
   );
 };
@@ -14,7 +14,7 @@ const styles = StyleSheet.create({
   button: {
     position: "absolute",
     bottom: 30,
-    right: 160,
+    right: 20,
     width: 70,
     height: 70,
     justifyContent: "center",
@@ -28,4 +28,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PauseButton;
+export default RestartButton;
