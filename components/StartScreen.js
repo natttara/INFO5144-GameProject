@@ -8,10 +8,29 @@ import {
   Animated,
 } from "react-native";
 import Cat from "./Cat";
+import { Audio } from 'expo-av';
 
 const StartScreen = ({ onStart }) => {
   const catFade = useRef(new Animated.Value(0)).current;
   const catY = useRef(new Animated.Value(20)).current;
+
+  const playSound = async () => {
+    try {
+      const { sound } = await Audio.Sound.createAsync(
+        require('../assets/sounds/catSound.mp3')
+      );
+      await sound.playAsync();
+    } catch (error) {
+      console.log('Error playing sound:', error);
+    }
+  };
+
+  const handleStartPress = async () => {
+  await playSound(); // play the sound first
+  setTimeout(() => {
+    onStart();       // start the game after 1 seconds
+  }, 1000);
+};
 
   useEffect(() => {
     Animated.parallel([
@@ -39,7 +58,7 @@ const StartScreen = ({ onStart }) => {
           <Text style={styles.welcomeText}>
             Press the button to start the game!
           </Text>
-          <TouchableOpacity style={styles.button} onPress={onStart}>
+          <TouchableOpacity style={styles.button} onPress={handleStartPress}>
             <Text style={styles.buttonText}>START</Text>
           </TouchableOpacity>
         </View>
