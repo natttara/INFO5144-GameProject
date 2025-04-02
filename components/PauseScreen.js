@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ImageBackground, Animated } from "react-native";
 import Cat from "./Cat";
 
-const PauseScreen = ({ onResume, onExit }) => {
+const PauseScreen = ({ onResume, onExitToStart }) => {
     const catFade = useRef(new Animated.Value(0)).current;
     const catY = useRef(new Animated.Value(20)).current;
 
@@ -33,7 +33,7 @@ const PauseScreen = ({ onResume, onExit }) => {
                     <TouchableOpacity style={styles.button} onPress={onResume}>
                         <Text style={styles.buttonText}>Resume</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.button} onPress={onExit}>
+                    <TouchableOpacity style={styles.button} onPress={onExitToStart}>
                         <Text style={styles.buttonText}>Restart</Text>
                     </TouchableOpacity>
                 </View>

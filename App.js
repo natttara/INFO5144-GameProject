@@ -6,24 +6,7 @@ import StartScreen from "./components/StartScreen";
 import InstructionScreen from "./components/InstructionScreen";
 
 export default function App() {
-  // const [welcome, setWelcome] = useState(true);
   const [screen, setScreen] = useState("start");
-
-  // if (welcome) {
-  //   return (
-  //     <View style={styles.container}>
-  //       <StatusBar hidden />
-  //       <StartScreen onStart={() => setWelcome(false)} />
-  //     </View>
-  //   );
-  // }
-
-  // return (
-  //   <View style={styles.container}>
-  //     <GameScene />
-  //     <StatusBar style="light" />
-  //   </View>
-  // );
 
   return (
     <View style={styles.container}>
