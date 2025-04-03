@@ -14,13 +14,14 @@ const Images = {
   rock1: require("./assets/background/rock1.png"),
   rock2: require("./assets/background/rock2.png"),
   rock3: require("./assets/background/rock3.png"),
-  smallRock: require("./assets/background/smallrock.png"),
-  bigRock: require("./assets/background/bigrock.png"),
-  tallRock: require("./assets/background/tallrock.png"),
+  smallRock: require("./assets/background/smallRock.png"),
+  bigRock: require("./assets/background/bigRock.png"),
+  tallRock: require("./assets/background/tallRock.png"),
   pause: require("./assets/pause.png"),
   jumpPaw: require("./assets/jumpPaw.png"),
   restart: require("./assets/restart.png"),
   forest: require("./assets/background/forest.png"),
+  coin: require("./assets/coin.png"),
 };
 
 export default Images;
