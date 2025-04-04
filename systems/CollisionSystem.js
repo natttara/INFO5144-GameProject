@@ -3,7 +3,7 @@ import CoinObstacleSystem from "./CoinObstacleSystem";
 import MovementSystem from "./MovementSystem";
 
 const INVULNERABLE_DURATION = 1500; // 1.5 seconds of invulnerability
-const STARTING_X = 60; // Starting x position for the cat
+// const STARTING_X = 60;
 const BOUNCE_DURATION = 25; // Short duration for state change
 
 // Create a state object to avoid closure issues
@@ -54,11 +54,15 @@ const CollisionSystem = (entities, { events, dispatch, time }) => {
 
     // Check if invulnerability period is over
     if (timeSinceHit >= INVULNERABLE_DURATION) {
-      console.log("Ending invulnerability state");
       gameState.isInvulnerable = false;
       cat.opacity = 1;
       gameState.flashTimer = 0;
       CoinObstacleSystem.setInvulnerable(false);
+
+      // Reset collision filter to normal
+      if (cat.body) {
+        cat.body.collisionFilter.mask = 0xffffffff; // Collide with everything
+      }
     }
   }
 
@@ -73,7 +77,15 @@ const CollisionSystem = (entities, { events, dispatch, time }) => {
         if (labels.includes("cat") && labels.includes("coin")) {
           dispatch({ type: "coin-collected" });
           const coinBody = bodyA.label === "coin" ? bodyA : bodyB;
-          Matter.World.remove(world, coinBody);
+          const coinId = Object.keys(entities).find(
+            (key) => entities[key].body === coinBody
+          );
+
+          // Remove the coin entity and its body
+          if (coinId) {
+            Matter.World.remove(world, coinBody);
+            delete entities[coinId];
+          }
         }
 
         // Handle obstacle collisions
