@@ -2,15 +2,12 @@ import Matter from "matter-js";
 import Constants from "../Constants";
 
 let lastSpawnTime = 0;
-const scrollSpeed = 3; // Base speed
 const MIN_SPACING = 400; // Minimum distance between items
 const SPAWN_INTERVAL = 2000; // Base spawn interval
 const HISTORY_LENGTH = 120; // Keep 2 seconds of history at 60fps
 
 // Keep track of obstacle positions
 const obstacleHistory = new Map();
-let isInvulnerable = false;
-let isRewinding = false;
 
 const CoinObstacleSystem = (entities, { time }) => {
   const world = entities.physics.world;
@@ -18,7 +15,7 @@ const CoinObstacleSystem = (entities, { time }) => {
   const now = time.current;
 
   // If rewinding or invulnerable, don't move or spawn obstacles
-  if (isRewinding || isInvulnerable) {
+  if (CoinObstacleSystem.isRewinding || CoinObstacleSystem.isInvulnerable) {
     return entities;
   }
 
@@ -71,8 +68,8 @@ const CoinObstacleSystem = (entities, { time }) => {
         isStatic: true,
         label: "coin",
         collisionFilter: {
-          category: 0x0008, // Coin category
-          mask: 0x0001, // Only collide with cat
+          category: 0x0008,
+          mask: 0x0001,
           group: 0,
         },
       });
@@ -83,7 +80,7 @@ const CoinObstacleSystem = (entities, { time }) => {
         body: coin,
         size: [40, 40],
         renderer: require("../components/Coin").default,
-        scrollSpeed: scrollSpeed,
+        scrollSpeed: CoinObstacleSystem.baseScrollSpeed,
       };
     } else {
       const obstacle = Matter.Bodies.rectangle(spawnX, spawnY, 50, 100, {
@@ -91,8 +88,8 @@ const CoinObstacleSystem = (entities, { time }) => {
         label: "obstacle",
         isSensor: false,
         collisionFilter: {
-          category: 0x0002, // Obstacle category
-          mask: 0x0001, // Only collide with cat
+          category: 0x0002,
+          mask: 0x0001,
           group: 0,
         },
         friction: 0,
@@ -105,62 +102,72 @@ const CoinObstacleSystem = (entities, { time }) => {
         body: obstacle,
         size: [50, 100],
         renderer: require("../components/Obstacle").default,
-        scrollSpeed: scrollSpeed,
+        scrollSpeed: CoinObstacleSystem.baseScrollSpeed,
       };
     }
   }
 
-  // Scroll and clean up dynamic entities
+  // Update positions of existing obstacles and coins
   Object.keys(entities).forEach((key) => {
     const entity = entities[key];
+    if (key.startsWith("obstacle") || key.startsWith("coin")) {
+      // Apply the entity's current scroll speed
+      Matter.Body.translate(entity.body, {
+        x: entity.scrollSpeed,
+        y: 0,
+      });
 
-    // Skip non-dynamic entities
-    if (
-      !entity.body ||
-      !entity.body.position ||
-      key === "cat" ||
-      key.startsWith("floor") ||
-      key === "physics"
-    )
-      return;
-
-    // Move the entity leftward
-    Matter.Body.setPosition(entity.body, {
-      x: entity.body.position.x - scrollSpeed,
-      y: entity.body.position.y,
-    });
-
-    // Remove if it goes off screen
-    if (entity.body.position.x < -100) {
-      Matter.World.remove(world, entity.body);
-      delete entities[key];
-      obstacleHistory.delete(key); // Clean up history
+      // Remove if it goes off screen
+      if (entity.body.position.x < -100) {
+        Matter.World.remove(world, entity.body);
+        delete entities[key];
+        obstacleHistory.delete(key);
+      }
     }
   });
 
   return entities;
 };
 
-// Export rewind function for obstacles
-CoinObstacleSystem.rewindObstacles = (entities, frames) => {
-  Object.keys(entities).forEach((key) => {
-    if (key.startsWith("obstacle")) {
-      const history = obstacleHistory.get(key);
-      if (history && history.length >= frames) {
-        const position = history[history.length - frames];
-        Matter.Body.setPosition(entities[key].body, position);
-      }
-    }
-  });
-};
+// Initialize static properties after defining CoinObstacleSystem
+CoinObstacleSystem.isRewinding = false;
+CoinObstacleSystem.isInvulnerable = false;
+CoinObstacleSystem.baseScrollSpeed = -4; // Reduced from -8 to -4 for slower movement
 
-// Add functions to control system state
-CoinObstacleSystem.setInvulnerable = (value) => {
-  isInvulnerable = value;
-};
-
+// Static methods
 CoinObstacleSystem.setRewinding = (value) => {
-  isRewinding = value;
+  CoinObstacleSystem.isRewinding = value;
+};
+
+CoinObstacleSystem.setInvulnerable = (value) => {
+  CoinObstacleSystem.isInvulnerable = value;
+};
+
+// New method to teleport obstacle
+CoinObstacleSystem.teleportObstacle = (entities, obstacleId) => {
+  const obstacle = entities[obstacleId];
+  if (obstacle) {
+    // Find rightmost obstacle position
+    let rightmostX = Constants.SCREEN_WIDTH;
+    Object.keys(entities).forEach((key) => {
+      if (key.startsWith("obstacle") && key !== obstacleId) {
+        const otherObstacle = entities[key];
+        if (otherObstacle.body && otherObstacle.body.position) {
+          rightmostX = Math.max(rightmostX, otherObstacle.body.position.x);
+        }
+      }
+    });
+
+    // Teleport to just right of the screen or rightmost obstacle
+    const newX = Math.max(
+      Constants.SCREEN_WIDTH + 50,
+      rightmostX + MIN_SPACING
+    );
+    Matter.Body.setPosition(obstacle.body, {
+      x: newX,
+      y: obstacle.body.position.y,
+    });
+  }
 };
 
 export default CoinObstacleSystem;

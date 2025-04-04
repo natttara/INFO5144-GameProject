@@ -19,6 +19,7 @@ const GameScene = () => {
   const [backgroundWidth, setBackgroundWidth] = useState(800);
   const [lives, setLives] = useState(3);
   const [isGameOver, setIsGameOver] = useState(false);
+  const [isRewinding, setIsRewinding] = useState(false);
   const gameEngineRef = useRef(null);
   const jumpSoundRef = useRef(null);
   const backgroundSoundRef = useRef(null);
@@ -117,6 +118,8 @@ const GameScene = () => {
         }
         return newLives;
       });
+    } else if (e.type === "background-rewind") {
+      setIsRewinding(e.isRewinding);
     }
   }, []);
 
@@ -144,7 +147,11 @@ const GameScene = () => {
 
   return (
     <View style={styles.container}>
-      <Background offsetX={offsetX} backgroundWidth={backgroundWidth} />
+      <Background
+        offsetX={offsetX}
+        backgroundWidth={backgroundWidth}
+        isRewinding={isRewinding}
+      />
       <LivesDisplay />
       <GameEngine
         ref={gameEngineRef}

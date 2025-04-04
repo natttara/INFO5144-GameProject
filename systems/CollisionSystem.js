@@ -2,20 +2,18 @@ import Matter from "matter-js";
 import CoinObstacleSystem from "./CoinObstacleSystem";
 import MovementSystem from "./MovementSystem";
 
-// Keep track of cat position history
-const positionHistory = [];
-const HISTORY_LENGTH = 120; // About 2 seconds of history at 60fps
-const REWIND_AMOUNT = 90; // About 1.5 seconds rewind
 const INVULNERABLE_DURATION = 1500; // 1.5 seconds of invulnerability
-const BOUNCE_VELOCITY = -8; // Bounce velocity when hitting obstacle
+const STARTING_X = 60; // Starting x position for the cat
+const BOUNCE_DURATION = 25; // Short duration for state change
 
-let isInvulnerable = false;
-let invulnerableStartTime = 0;
-let flashTimer = 0;
-let isRewinding = false;
-let rewindStartTime = 0;
-const REWIND_DURATION = 2000; // 2 seconds to rewind
-const PAUSE_AFTER_REWIND = 5000; // 5 seconds pause after rewind
+// Create a state object to avoid closure issues
+const gameState = {
+  isInvulnerable: false,
+  invulnerableStartTime: 0,
+  flashTimer: 0,
+  isRewinding: false,
+  rewindStartTime: 0,
+};
 
 const CollisionSystem = (entities, { events, dispatch, time }) => {
   const engine = entities.physics.engine;
@@ -23,72 +21,51 @@ const CollisionSystem = (entities, { events, dispatch, time }) => {
   const cat = entities.cat;
 
   // Handle rewinding state
-  if (isRewinding) {
-    const timeSinceRewind = time.current - rewindStartTime;
+  if (gameState.isRewinding) {
+    const timeSinceRewind = time.current - gameState.rewindStartTime;
 
-    if (timeSinceRewind < REWIND_DURATION) {
-      // Still rewinding - don't update physics
+    if (timeSinceRewind < BOUNCE_DURATION) {
+      // Brief pause while teleporting obstacle
       CoinObstacleSystem.setRewinding(true);
       MovementSystem.setRewinding(true);
       dispatch({ type: "background-rewind", isRewinding: true });
-      return entities;
-    } else if (timeSinceRewind < REWIND_DURATION + PAUSE_AFTER_REWIND) {
-      // In pause period after rewind - keep everything frozen
-      CoinObstacleSystem.setRewinding(true);
-      MovementSystem.setRewinding(true);
-      dispatch({ type: "background-rewind", isRewinding: true });
-      cat.action = "idle"; // Make sure cat stays idle during the long pause
       return entities;
     } else {
-      // Done rewinding and pausing
-      isRewinding = false;
-      isInvulnerable = true;
+      // Done rewinding
+      gameState.isRewinding = false;
+      gameState.isInvulnerable = true;
+      gameState.invulnerableStartTime = time.current;
+      cat.opacity = 0.3;
       CoinObstacleSystem.setRewinding(false);
       MovementSystem.setRewinding(false);
       dispatch({ type: "background-rewind", isRewinding: false });
-      invulnerableStartTime = time.current;
-      cat.action = "run";
-      Matter.Body.setVelocity(cat.body, { x: 0, y: 0 });
     }
   }
 
   // Handle invulnerability period
-  if (isInvulnerable) {
-    const timeSinceHit = time.current - invulnerableStartTime;
+  if (gameState.isInvulnerable) {
+    const timeSinceHit = time.current - gameState.invulnerableStartTime;
 
     // Flash the cat every 100ms
-    if (Math.floor(timeSinceHit / 100) !== flashTimer) {
-      flashTimer = Math.floor(timeSinceHit / 100);
+    if (Math.floor(timeSinceHit / 100) !== gameState.flashTimer) {
+      gameState.flashTimer = Math.floor(timeSinceHit / 100);
       cat.opacity = cat.opacity === 1 ? 0.3 : 1;
     }
 
     // Check if invulnerability period is over
     if (timeSinceHit >= INVULNERABLE_DURATION) {
-      isInvulnerable = false;
-      CoinObstacleSystem.setInvulnerable(false);
+      console.log("Ending invulnerability state");
+      gameState.isInvulnerable = false;
       cat.opacity = 1;
-      cat.action = "run";
-      dispatch({ type: "resume-running" });
+      gameState.flashTimer = 0;
+      CoinObstacleSystem.setInvulnerable(false);
     }
   }
 
-  // Store current cat position in history
-  if (cat && cat.body && !isRewinding) {
-    positionHistory.push({
-      x: cat.body.position.x,
-      y: cat.body.position.y,
-      velocity: { x: cat.body.velocity.x, y: cat.body.velocity.y },
-    });
-
-    // Keep history at fixed length
-    if (positionHistory.length > HISTORY_LENGTH) {
-      positionHistory.shift();
-    }
-  }
-
-  // Set up collision detection if not already set up
-  if (!engine.collisionSetup) {
-    Matter.Events.on(engine, "collisionStart", (event) => {
+  // Always ensure collision detection is set up
+  if (!engine.collisionStartHandler) {
+    // Set up collision handler
+    const collisionHandler = (event) => {
       event.pairs.forEach((pair) => {
         const { bodyA, bodyB } = pair;
         const labels = [bodyA.label, bodyB.label];
@@ -99,69 +76,49 @@ const CollisionSystem = (entities, { events, dispatch, time }) => {
           Matter.World.remove(world, coinBody);
         }
 
+        // Handle obstacle collisions
         if (
           labels.includes("cat") &&
           labels.includes("obstacle") &&
-          !isInvulnerable &&
-          !isRewinding
+          !gameState.isInvulnerable &&
+          !gameState.isRewinding
         ) {
-          console.log("Collision detected with obstacle!");
+          console.log("Obstacle collision detected!");
 
           // Start rewind process
-          isRewinding = true;
-          rewindStartTime = time.current;
-          cat.action = "idle";
+          gameState.isRewinding = true;
+          gameState.rewindStartTime = time.current;
 
-          // Rewind cat position
-          if (positionHistory.length >= REWIND_AMOUNT) {
-            const rewindPosition =
-              positionHistory[positionHistory.length - REWIND_AMOUNT];
-            Matter.Body.setPosition(cat.body, {
-              x: 60, // Reset to starting x position
-              y: rewindPosition.y,
-            });
+          // Get the obstacle body and entity
+          const obstacleBody = bodyA.label === "obstacle" ? bodyA : bodyB;
+          const currentObstacleId =
+            bodyA.label === "obstacle"
+              ? Object.keys(entities).find(
+                  (key) => entities[key].body === bodyA
+                )
+              : Object.keys(entities).find(
+                  (key) => entities[key].body === bodyB
+                );
 
-            // Apply bounce effect
-            Matter.Body.setVelocity(cat.body, { x: 0, y: BOUNCE_VELOCITY });
-
-            // Rewind all game elements
-            CoinObstacleSystem.rewindObstacles(entities, REWIND_AMOUNT);
-            MovementSystem.rewindFloors(entities, REWIND_AMOUNT);
-            dispatch({
-              type: "rewind-background",
-              frames: REWIND_AMOUNT,
-            });
-
-            // Clear history after rewind
-            positionHistory.length = 0;
+          if (currentObstacleId) {
+            // Tell CoinObstacleSystem to teleport the obstacle
+            CoinObstacleSystem.teleportObstacle(entities, currentObstacleId);
           }
 
-          // Dispatch hit event after rewind
+          // Dispatch hit event
           dispatch({ type: "hit-obstacle" });
         }
       });
-    });
+    };
 
-    engine.collisionSetup = true;
+    Matter.Events.on(engine, "collisionStart", collisionHandler);
+    engine.collisionStartHandler = collisionHandler;
   }
 
   // Update physics engine if not rewinding
-  if (!isRewinding) {
+  if (!gameState.isRewinding) {
     Matter.Engine.update(engine, 1000 / 60);
   }
-
-  // Debug: Log positions of cat and obstacles
-  Object.keys(entities).forEach((key) => {
-    const entity = entities[key];
-    if (entity.body) {
-      if (entity.body.label === "cat") {
-        console.log("Cat position:", entity.body.position);
-      }
-      if (entity.body.label === "obstacle") {
-        console.log("Obstacle position:", entity.body.position);
-      }
-    }
-  });
 
   return entities;
 };

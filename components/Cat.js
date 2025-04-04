@@ -93,7 +93,7 @@ const Cat = ({
         styles.container,
         { width: size, height: size, opacity },
         position,
-        style, // Allow style prop to override position if needed
+        style,
       ]}>
       <SpriteSheet
         ref={catRef}
