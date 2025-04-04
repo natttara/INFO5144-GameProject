@@ -37,9 +37,8 @@ const MovementSystem = (entities, { time, dispatch }) => {
         offsetX={Math.round(floor2.offsetX)}
       />
     );
-
   }
-    // Move coin
+  // Move coin
   if (coin) {
     coin.position.x -= scrollSpeed;
   }
@@ -49,22 +48,11 @@ const MovementSystem = (entities, { time, dispatch }) => {
     obstacle.position.x -= scrollSpeed;
   }
 
-    // dispatch({
-    //   type: "floor-offset",
-    //   offsetX: time.current,
-    //   backgroundWidth,
-    // });
-
-  // Dispatch once every 1000ms
-  if (time.current - entities.physics.lastDispatchTime > 1000) {
-    entities.physics.lastDispatchTime = time.current;
-
-    dispatch({
-      type: "floor-offset",
-      offsetX: floor1?.offsetX || 0,
-      backgroundWidth,
-    });
-  }
+  dispatch({
+    type: "floor-offset",
+    offsetX: floor1?.offsetX || 0,
+    backgroundWidth,
+  });
 
   return entities;
 };

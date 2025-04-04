@@ -42,7 +42,7 @@ const Background = ({ offsetX, backgroundWidth }) => {
 
     // Update bush offset
     setBushOffset((prevOffset) => {
-      const newOffset = prevOffset + parallaxSpeed * 1.6;
+      const newOffset = prevOffset + parallaxSpeed * 2;
       if (newOffset >= screenWidth) {
         // Switch bush images when resetting
         setCurrentBush1((prev) =>
@@ -143,7 +143,6 @@ const styles = StyleSheet.create({
   imageContainer: {
     flex: 1,
     overflow: "hidden",
-    marginTop: 40,
   },
   backgroundImage: {
     position: "absolute",
@@ -152,14 +151,14 @@ const styles = StyleSheet.create({
   },
   tree: {
     position: "absolute",
-    bottom: 170,
+    bottom: 190,
     width: 350,
     height: 525,
     resizeMode: "contain",
   },
   bush: {
     position: "absolute",
-    bottom: 160,
+    bottom: 185,
     width: 180,
     height: 120,
     resizeMode: "contain",
