@@ -58,6 +58,12 @@ const Cat = ({
                 fps: 8,
                 loop: true,
               });
+            } else {
+              catRef.current.play({
+                type: "idle",
+                fps: 8,
+                loop: true,
+              });
             }
           },
         });
@@ -67,17 +73,34 @@ const Cat = ({
           fps: 8,
           loop: true,
         });
-      } else if (action === "idle") {
+      } else {
         catRef.current.play({
           type: "idle",
           fps: 8,
           loop: true,
         });
-      } else {
-        catRef.current.stop();
       }
     }
   }, [action, isRunning]);
+
+  // Also trigger animation changes when isRunning changes
+  useEffect(() => {
+    if (catRef.current) {
+      if (!isRunning) {
+        catRef.current.play({
+          type: "idle",
+          fps: 8,
+          loop: true,
+        });
+      } else if (action === "run") {
+        catRef.current.play({
+          type: "run",
+          fps: 8,
+          loop: true,
+        });
+      }
+    }
+  }, [isRunning]);
 
   // Calculate position based on physics body if available, otherwise use style
   const position = body
@@ -97,16 +120,30 @@ const Cat = ({
       ]}>
       <SpriteSheet
         ref={catRef}
-        source={spriteSources[action]}
-        columns={frameCount[action]}
+        source={spriteSources[isRunning ? action : "idle"]}
+        columns={frameCount[isRunning ? action : "idle"]}
         rows={1}
         width={size}
         height={size}
         animations={{
-          [action]: animations[action],
+          [isRunning ? action : "idle"]:
+            animations[isRunning ? action : "idle"],
         }}
         onLoad={() => {
-          console.log(`Sprite sheet loaded for ${action}`);
+          console.log(`Sprite sheet loaded for ${isRunning ? action : "idle"}`);
+          if (!isRunning) {
+            catRef.current?.play({
+              type: "idle",
+              fps: 8,
+              loop: true,
+            });
+          } else if (action === "run") {
+            catRef.current?.play({
+              type: "run",
+              fps: 8,
+              loop: true,
+            });
+          }
         }}
       />
     </View>
