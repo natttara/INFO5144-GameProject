@@ -8,7 +8,7 @@ import {
   Animated,
 } from "react-native";
 import Cat from "./Cat";
-import { Audio } from 'expo-av';
+import { Audio } from "expo-av";
 
 const StartScreen = ({ onStart }) => {
   const catFade = useRef(new Animated.Value(0)).current;
@@ -17,18 +17,18 @@ const StartScreen = ({ onStart }) => {
   const playSound = async () => {
     try {
       const { sound } = await Audio.Sound.createAsync(
-        require('../assets/sounds/catSound.mp3')
+        require("../assets/sounds/catSound.mp3")
       );
       await sound.playAsync();
     } catch (error) {
-      console.log('Error playing sound:', error);
+      console.log("Error playing sound:", error);
     }
   };
 
   const handleStartPress = async () => {
-    await playSound(); // play the sound first
+    await playSound();
     setTimeout(() => {
-      onStart();       // start the game after 1 seconds
+      onStart();
     }, 1000);
   };
 
@@ -64,17 +64,16 @@ const StartScreen = ({ onStart }) => {
         </View>
 
         {/* Cat container */}
-        <View style={styles.catsContainer}>
-          <Cat
-            action="idle"
-            size={32}
-            style={{
-              transform: [{ scale: 3 }],
+        <Animated.View
+          style={[
+            styles.catsContainer,
+            {
+              transform: [{ translateY: catY }, { scale: 3 }],
               opacity: catFade,
-              translateY: catY,
-            }}
-          />
-        </View>
+            },
+          ]}>
+          <Cat action="idle" size={32} isRunning={false} />
+        </Animated.View>
       </ImageBackground>
     </View>
   );

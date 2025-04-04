@@ -1,11 +1,17 @@
 import React, { useRef, useEffect } from "react";
-import { Animated, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
 import SpriteSheet from "rn-sprite-sheet";
 
-const Cat = ({ action = "idle", style, size = 180, isRunning = true }) => {
-  //"If the Cat component is used without passing the action prop, default it to 'idle'."//
+const Cat = ({
+  body,
+  size = 100,
+  action = "run",
+  isRunning = true,
+  style,
+  opacity = 1,
+}) => {
   const catRef = useRef(null);
-  const prevActionRef = useRef(); //store the previous action value between renders — without causing a re-render.
+  const prevActionRef = useRef(action);
 
   const animations = {
     idle: [0, 1, 2, 3, 4, 5, 6],
@@ -31,17 +37,12 @@ const Cat = ({ action = "idle", style, size = 180, isRunning = true }) => {
     attack: 3,
   };
 
-  // useEffect(() => {
-  //   if (catRef.current) {
-  //     console.log("Action changed to:", action);
-  //     if (action === "jump") {
-  //       console.log("Starting jump animation");
-
   useEffect(() => {
     const prevAction = prevActionRef.current;
 
     if (catRef.current && action !== prevAction) {
       prevActionRef.current = action;
+      console.log("Cat action changed to:", action);
 
       if (action === "jump") {
         catRef.current.stop();
@@ -51,7 +52,6 @@ const Cat = ({ action = "idle", style, size = 180, isRunning = true }) => {
           loop: false,
           onComplete: () => {
             console.log("Jump animation completed");
-            // After jump completes, resume running if the game is running
             if (isRunning) {
               catRef.current.play({
                 type: "run",
@@ -61,10 +61,15 @@ const Cat = ({ action = "idle", style, size = 180, isRunning = true }) => {
             }
           },
         });
-      } else if (isRunning) {
-        // For running animation
+      } else if (isRunning && action !== "idle") {
         catRef.current.play({
           type: action,
+          fps: 8,
+          loop: true,
+        });
+      } else if (action === "idle") {
+        catRef.current.play({
+          type: "idle",
           fps: 8,
           loop: true,
         });
@@ -74,8 +79,22 @@ const Cat = ({ action = "idle", style, size = 180, isRunning = true }) => {
     }
   }, [action, isRunning]);
 
+  // Calculate position based on physics body if available, otherwise use style
+  const position = body
+    ? {
+        left: body.position.x - size / 2,
+        top: body.position.y - size / 2,
+      }
+    : {};
+
   return (
-    <Animated.View style={[{ width: size, height: size }, style]}>
+    <View
+      style={[
+        styles.container,
+        { width: size, height: size, opacity },
+        position,
+        style, // Allow style prop to override position if needed
+      ]}>
       <SpriteSheet
         ref={catRef}
         source={spriteSources[action]}
@@ -90,17 +109,14 @@ const Cat = ({ action = "idle", style, size = 180, isRunning = true }) => {
           console.log(`Sprite sheet loaded for ${action}`);
         }}
       />
-    </Animated.View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  catContainer: {
+  container: {
     position: "absolute",
-    width: "100%",
-    alignItems: "center",
-    backgroundColor: "transparent",
-    zIndex: 1,
+    zIndex: 2,
   },
 });
 

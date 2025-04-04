@@ -1,12 +1,13 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { View, StyleSheet, Animated } from "react-native";
+import { View, StyleSheet, Text, TouchableOpacity } from "react-native";
 import { GameEngine } from "react-native-game-engine";
+import Matter from "matter-js";
 import MovementSystem from "./systems/MovementSystem";
+import CollisionSystem from "./systems/CollisionSystem";
 import entities from "./entities";
 import PauseButton from "./components/PauseButton";
 import JumpButton from "./components/JumpButton";
 import Background from "./components/Background";
-import Cat from "./components/Cat";
 import { Audio } from "expo-av";
 import CoinObstacleSystem from "./systems/CoinObstacleSystem";
 import PauseScreen from "./components/PauseScreen";
@@ -16,12 +17,13 @@ const GameScene = () => {
   const [isRunning, setIsRunning] = useState(true);
   const [offsetX, setOffsetX] = useState(0);
   const [backgroundWidth, setBackgroundWidth] = useState(800);
-  const [catAction, setCatAction] = useState("run"); // Start with "run"
+  const [lives, setLives] = useState(3);
+  const [isGameOver, setIsGameOver] = useState(false);
   const gameEngineRef = useRef(null);
-  const jumpY = useRef(new Animated.Value(0)).current;
   const jumpSoundRef = useRef(null);
   const backgroundSoundRef = useRef(null);
   const [showPauseScreen, setShowPauseScreen] = useState(false);
+  const gameEntities = useRef(entities()).current;
 
   // Load jump sound once
   useEffect(() => {
@@ -55,7 +57,6 @@ const GameScene = () => {
         if (isMounted) {
           backgroundSoundRef.current = sound;
           await sound.playAsync();
-          console.log("Background music playing...");
         }
       } catch (error) {
         console.warn("Failed to load background music:", error);
@@ -72,11 +73,6 @@ const GameScene = () => {
     };
   }, []);
 
-  // const togglePause = () => {
-  //   setIsRunning(!isRunning);
-  // };
-
-  //for Pause screen
   const togglePause = () => {
     const newRunning = !isRunning;
     setIsRunning(newRunning);
@@ -84,28 +80,26 @@ const GameScene = () => {
   };
 
   const handleJump = () => {
-    if (catAction !== "jump") {
-      setCatAction("jump");
-
+    if (isRunning && gameEntities.cat && gameEntities.cat.body) {
       // Play jump sound
       if (jumpSoundRef.current) {
         jumpSoundRef.current.replayAsync();
       }
 
-      Animated.sequence([
-        Animated.timing(jumpY, {
-          toValue: -180, // jump height
-          duration: 350,
-          useNativeDriver: true,
-        }),
-        Animated.timing(jumpY, {
-          toValue: 0,
-          duration: 350,
-          useNativeDriver: true,
-        }),
-      ]).start(() => {
-        setCatAction("run"); // return to running after jump
-      });
+      // Apply upward force to the cat's physics body
+      Matter.Body.setVelocity(gameEntities.cat.body, { x: 0, y: -15 });
+
+      // Set cat action to jump
+      if (gameEntities.cat.renderer) {
+        gameEntities.cat.action = "jump";
+
+        // Reset to run after jump animation
+        setTimeout(() => {
+          if (isRunning && gameEntities.cat) {
+            gameEntities.cat.action = "run";
+          }
+        }, 700);
+      }
     }
   };
 
@@ -113,32 +107,53 @@ const GameScene = () => {
     if (e.type === "floor-offset") {
       setOffsetX(e.offsetX);
       setBackgroundWidth(e.backgroundWidth);
+    } else if (e.type === "hit-obstacle") {
+      console.log("Hit obstacle event received");
+      setLives((prevLives) => {
+        const newLives = prevLives - 1;
+        if (newLives <= 0) {
+          setIsGameOver(true);
+          setIsRunning(false);
+        }
+        return newLives;
+      });
     }
   }, []);
 
   const handleRestart = () => {
+    setLives(3);
+    setIsGameOver(false);
     setIsRunning(false);
+
+    // Reset entities
+    const resetEntities = entities();
+    if (gameEngineRef.current) {
+      gameEngineRef.current.swap(resetEntities);
+    }
+
     setTimeout(() => {
       setIsRunning(true);
     }, 100);
   };
 
+  const LivesDisplay = () => (
+    <View style={styles.livesContainer}>
+      <Text style={styles.livesText}>Lives: {lives}</Text>
+    </View>
+  );
+
   return (
     <View style={styles.container}>
       <Background offsetX={offsetX} backgroundWidth={backgroundWidth} />
+      <LivesDisplay />
       <GameEngine
         ref={gameEngineRef}
         style={styles.gameContainer}
-        systems={[MovementSystem, CoinObstacleSystem]}
-        entities={entities()}
+        systems={[MovementSystem, CoinObstacleSystem, CollisionSystem]}
+        entities={gameEntities}
         running={isRunning}
         onEvent={onEvent}
       />
-      {/* <Cat action="run" size={100} style={styles.cat} isRunning={isRunning} /> */}
-      <Animated.View
-        style={[styles.cat, { transform: [{ translateY: jumpY }] }]}>
-        <Cat action={catAction} size={100} isRunning={isRunning} />
-      </Animated.View>
 
       <View style={styles.controlsRow}>
         <JumpButton onPress={handleJump} />
@@ -146,8 +161,20 @@ const GameScene = () => {
         <RestartButton onPress={handleRestart} />
       </View>
 
-      {/* pause screen */}
-      {showPauseScreen && (
+      {isGameOver && (
+        <View style={styles.gameOverContainer}>
+          <View style={styles.gameOverBox}>
+            <Text style={styles.gameOverText}>Game Over!</Text>
+            <TouchableOpacity
+              style={styles.restartButton}
+              onPress={handleRestart}>
+              <Text style={styles.restartButtonText}>Play Again</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {showPauseScreen && !isGameOver && (
         <PauseScreen
           onResume={togglePause}
           onExit={() => {
@@ -180,11 +207,51 @@ const styles = StyleSheet.create({
     alignItems: "center",
     zIndex: 1,
   },
-  cat: {
+  livesContainer: {
     position: "absolute",
-    bottom: 200,
-    left: 60,
-    zIndex: 2,
+    top: 20,
+    left: 20,
+    zIndex: 10,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    padding: 10,
+    borderRadius: 5,
+  },
+  livesText: {
+    color: "white",
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  gameOverContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 100,
+  },
+  gameOverBox: {
+    backgroundColor: "white",
+    padding: 20,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  gameOverText: {
+    fontSize: 30,
+    fontWeight: "bold",
+    marginBottom: 20,
+  },
+  restartButton: {
+    backgroundColor: "#4CAF50",
+    padding: 15,
+    borderRadius: 5,
+  },
+  restartButtonText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "bold",
   },
 });
 

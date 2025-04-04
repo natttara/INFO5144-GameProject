@@ -5,11 +5,22 @@ let lastSpawnTime = 0;
 const scrollSpeed = 3; // Base speed
 const MIN_SPACING = 400; // Minimum distance between items
 const SPAWN_INTERVAL = 2000; // Base spawn interval
+const HISTORY_LENGTH = 120; // Keep 2 seconds of history at 60fps
+
+// Keep track of obstacle positions
+const obstacleHistory = new Map();
+let isInvulnerable = false;
+let isRewinding = false;
 
 const CoinObstacleSystem = (entities, { time }) => {
   const world = entities.physics.world;
   const screenHeight = Constants.SCREEN_HEIGHT;
   const now = time.current;
+
+  // If rewinding or invulnerable, don't move or spawn obstacles
+  if (isRewinding || isInvulnerable) {
+    return entities;
+  }
 
   // Find the rightmost item
   let rightmostX = 0;
@@ -21,6 +32,22 @@ const CoinObstacleSystem = (entities, { time }) => {
       (key.startsWith("obstacle") || key.startsWith("coin"))
     ) {
       rightmostX = Math.max(rightmostX, entity.body.position.x);
+
+      // Store obstacle positions
+      if (key.startsWith("obstacle")) {
+        if (!obstacleHistory.has(key)) {
+          obstacleHistory.set(key, []);
+        }
+        const history = obstacleHistory.get(key);
+        history.push({
+          x: entity.body.position.x,
+          y: entity.body.position.y,
+          time: now,
+        });
+        if (history.length > HISTORY_LENGTH) {
+          history.shift();
+        }
+      }
     }
   });
 
@@ -41,9 +68,13 @@ const CoinObstacleSystem = (entities, { time }) => {
     if (type === "coin") {
       const coin = Matter.Bodies.circle(spawnX, spawnY, 20, {
         isSensor: true,
-        isStatic: false,
+        isStatic: true,
         label: "coin",
-        render: { visible: false },
+        collisionFilter: {
+          category: 0x0008, // Coin category
+          mask: 0x0001, // Only collide with cat
+          group: 0,
+        },
       });
 
       const id = `coin_${now}`;
@@ -56,9 +87,16 @@ const CoinObstacleSystem = (entities, { time }) => {
       };
     } else {
       const obstacle = Matter.Bodies.rectangle(spawnX, spawnY, 50, 100, {
-        isStatic: false,
+        isStatic: true,
         label: "obstacle",
-        render: { visible: false },
+        isSensor: false,
+        collisionFilter: {
+          category: 0x0002, // Obstacle category
+          mask: 0x0001, // Only collide with cat
+          group: 0,
+        },
+        friction: 0,
+        restitution: 0,
       });
 
       const id = `obstacle_${now}`;
@@ -87,16 +125,42 @@ const CoinObstacleSystem = (entities, { time }) => {
       return;
 
     // Move the entity leftward
-    entity.body.position.x -= scrollSpeed;
+    Matter.Body.setPosition(entity.body, {
+      x: entity.body.position.x - scrollSpeed,
+      y: entity.body.position.y,
+    });
 
     // Remove if it goes off screen
     if (entity.body.position.x < -100) {
       Matter.World.remove(world, entity.body);
       delete entities[key];
+      obstacleHistory.delete(key); // Clean up history
     }
   });
 
   return entities;
+};
+
+// Export rewind function for obstacles
+CoinObstacleSystem.rewindObstacles = (entities, frames) => {
+  Object.keys(entities).forEach((key) => {
+    if (key.startsWith("obstacle")) {
+      const history = obstacleHistory.get(key);
+      if (history && history.length >= frames) {
+        const position = history[history.length - frames];
+        Matter.Body.setPosition(entities[key].body, position);
+      }
+    }
+  });
+};
+
+// Add functions to control system state
+CoinObstacleSystem.setInvulnerable = (value) => {
+  isInvulnerable = value;
+};
+
+CoinObstacleSystem.setRewinding = (value) => {
+  isRewinding = value;
 };
 
 export default CoinObstacleSystem;
