@@ -39,22 +39,7 @@ export default (gameWorld) => {
     }
   );
 
-  // Create coin
-  const coin = Matter.Bodies.circle(400, screenHeight - 250, 20, {
-    isSensor: true,
-    isStatic: true,
-    label: "coin",
-    render: { visible: false },
-  });
-
-  // Create obstacle
-  const obstacle = Matter.Bodies.rectangle(700, screenHeight - 250, 50, 100, {
-    isStatic: true,
-    label: "obstacle",
-    render: { visible: false },
-  });
-
-  Matter.World.add(world, [catBody, coin, obstacle]);
+  Matter.World.add(world, [catBody]);
 
   // Collision detection
   Matter.Events.on(engine, "collisionStart", (event) => {
@@ -63,7 +48,7 @@ export default (gameWorld) => {
 
       if (labels.includes("cat") && labels.includes("coin")) {
         gameWorld.dispatch({ type: "coin-collected" });
-        Matter.World.remove(world, coin); // remove the coin from the world
+        Matter.World.remove(world, bodyA.label === "coin" ? bodyA : bodyB);
       }
 
       if (labels.includes("cat") && labels.includes("obstacle")) {
@@ -73,24 +58,13 @@ export default (gameWorld) => {
   });
 
   const entities = {
-    physics: { engine, world }, lastDispatchTime: 0, // For safe dispatch throttling
+    physics: { engine, world },
+    lastDispatchTime: 0, // For safe dispatch throttling
 
     cat: Cat({
       body: catBody,
       size: catSize,
     }),
-
-    coin: {
-      body: coin,
-      size: [40, 40],
-      renderer: Coin,
-    },
-
-    obstacle: {
-      body: obstacle,
-      size: [50, 100],
-      renderer: Obstacle,
-    },
 
     floor1: Floor(
       world,

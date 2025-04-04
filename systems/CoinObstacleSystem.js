@@ -1,9 +1,8 @@
 import Matter from "matter-js";
 import Constants from "../Constants";
 
-let lastSpawnTime = 3000; // Set initial delay to 3 seconds
-let isFirstSpawn = true; // Track if this is the first spawn
-const scrollSpeed = 3; // Increased from 1 to 3 to match MovementSystem
+let lastSpawnTime = 0;
+const scrollSpeed = 3; // Base speed
 const MIN_SPACING = 400; // Minimum distance between items
 const SPAWN_INTERVAL = 2000; // Base spawn interval
 
@@ -26,17 +25,16 @@ const CoinObstacleSystem = (entities, { time }) => {
   });
 
   // Calculate next spawn position based on all items
-  const nextSpawnX = isFirstSpawn
-    ? Constants.SCREEN_WIDTH + 300
-    : Math.max(Constants.SCREEN_WIDTH + 100, rightmostX + MIN_SPACING);
+  const nextSpawnX = Math.max(
+    Constants.SCREEN_WIDTH + 100,
+    rightmostX + MIN_SPACING
+  );
 
   // Spawn logic based on time interval and spacing
   if (now - lastSpawnTime > SPAWN_INTERVAL) {
     lastSpawnTime = now;
 
     const spawnX = nextSpawnX;
-    isFirstSpawn = false;
-
     const spawnY = screenHeight - 250;
     const type = Math.random() > 0.5 ? "coin" : "obstacle";
 
@@ -54,6 +52,7 @@ const CoinObstacleSystem = (entities, { time }) => {
         body: coin,
         size: [40, 40],
         renderer: require("../components/Coin").default,
+        scrollSpeed: scrollSpeed,
       };
     } else {
       const obstacle = Matter.Bodies.rectangle(spawnX, spawnY, 50, 100, {
@@ -68,6 +67,7 @@ const CoinObstacleSystem = (entities, { time }) => {
         body: obstacle,
         size: [50, 100],
         renderer: require("../components/Obstacle").default,
+        scrollSpeed: scrollSpeed,
       };
     }
   }
