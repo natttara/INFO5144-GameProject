@@ -12,7 +12,7 @@ const CoinObstacleSystem = (entities, { time }) => {
   const screenHeight = Constants.SCREEN_HEIGHT;
   const now = time.current;
 
-  // Find the rightmost item (both coins and obstacles)
+  // Find the rightmost item
   let rightmostX = 0;
   Object.keys(entities).forEach((key) => {
     const entity = entities[key];
@@ -30,7 +30,7 @@ const CoinObstacleSystem = (entities, { time }) => {
     ? Constants.SCREEN_WIDTH + 300
     : Math.max(Constants.SCREEN_WIDTH + 100, rightmostX + MIN_SPACING);
 
-  // Simple spawn logic based on time interval and spacing
+  // Spawn logic based on time interval and spacing
   if (now - lastSpawnTime > SPAWN_INTERVAL) {
     lastSpawnTime = now;
 
