@@ -2,7 +2,11 @@ import React, { useEffect, useState, useRef } from "react";
 import { View, Image, StyleSheet } from "react-native";
 import Images from "../Images";
 
-const Background = ({ offsetX, backgroundWidth }) => {
+// Keep track of background element positions
+const backgroundHistory = [];
+const HISTORY_LENGTH = 120; // Match collision system's 2 second history
+
+const Background = ({ offsetX, backgroundWidth, isRewinding }) => {
   const [backgroundOffset, setBackgroundOffset] = useState(0);
   const [treeOffset, setTreeOffset] = useState(0);
   const [bushOffset, setBushOffset] = useState(0);
@@ -10,67 +14,117 @@ const Background = ({ offsetX, backgroundWidth }) => {
   const [currentTree2, setCurrentTree2] = useState(Images.tree2);
   const [currentBush1, setCurrentBush1] = useState(Images.bush1);
   const [currentBush2, setCurrentBush2] = useState(Images.bush2);
-  const animationFrameRef = useRef(null);
   const lastUpdateRef = useRef(Date.now());
-  const parallaxSpeed = 1; // Base speed
+  const animationFrameRef = useRef(null);
+  const parallaxSpeed = 1.5; // Base speed
   const imageWidth = 1363;
   const screenWidth = 800;
 
-  const animate = () => {
-    const now = Date.now();
-    const deltaTime = now - lastUpdateRef.current;
-    lastUpdateRef.current = now;
-
-    // Update background offset
-    setBackgroundOffset((prevOffset) => {
-      const newOffset = prevOffset + (parallaxSpeed * deltaTime) / 16;
-      if (newOffset >= imageWidth) {
-        return 0;
-      }
-      return newOffset;
-    });
-
-    // Update tree offset
-    setTreeOffset((prevOffset) => {
-      const newOffset = prevOffset + (parallaxSpeed * 1.8 * deltaTime) / 16;
-      if (newOffset >= screenWidth) {
-        setCurrentTree1((prev) =>
-          prev === Images.tree1 ? Images.tree2 : Images.tree1
-        );
-        setCurrentTree2((prev) =>
-          prev === Images.tree1 ? Images.tree2 : Images.tree1
-        );
-        return 0;
-      }
-      return newOffset;
-    });
-
-    // Update bush offset
-    setBushOffset((prevOffset) => {
-      const newOffset = prevOffset + (parallaxSpeed * 3.2 * deltaTime) / 16;
-      if (newOffset >= screenWidth) {
-        setCurrentBush1((prev) =>
-          prev === Images.bush1 ? Images.bush2 : Images.bush1
-        );
-        setCurrentBush2((prev) =>
-          prev === Images.bush1 ? Images.bush2 : Images.bush1
-        );
-        return 0;
-      }
-      return newOffset;
-    });
-
-    animationFrameRef.current = requestAnimationFrame(animate);
-  };
-
+  // Store positions in history
   useEffect(() => {
-    animationFrameRef.current = requestAnimationFrame(animate);
-    return () => {
+    if (!isRewinding) {
+      backgroundHistory.push({
+        backgroundOffset,
+        treeOffset,
+        bushOffset,
+        currentTree1,
+        currentTree2,
+        currentBush1,
+        currentBush2,
+        time: Date.now(),
+      });
+
+      if (backgroundHistory.length > HISTORY_LENGTH) {
+        backgroundHistory.shift();
+      }
+    }
+  }, [backgroundOffset, treeOffset, bushOffset, isRewinding]);
+
+  // Handle rewind state
+  useEffect(() => {
+    if (isRewinding && backgroundHistory.length > 0) {
+      // When rewinding, restore the previous state
+      const pastState = backgroundHistory[backgroundHistory.length - 1];
+      setBackgroundOffset(pastState.backgroundOffset);
+      setTreeOffset(pastState.treeOffset);
+      setBushOffset(pastState.bushOffset);
+      setCurrentTree1(pastState.currentTree1);
+      setCurrentTree2(pastState.currentTree2);
+      setCurrentBush1(pastState.currentBush1);
+      setCurrentBush2(pastState.currentBush2);
+
+      // Cancel any ongoing animation
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+    }
+  }, [isRewinding]);
+
+  // Animation update
+  useEffect(() => {
+    let isAnimating = true;
+
+    const animate = () => {
+      if (!isAnimating || isRewinding) {
+        return;
+      }
+
+      const now = Date.now();
+      const deltaTime = now - lastUpdateRef.current;
+      lastUpdateRef.current = now;
+
+      // Update background offset
+      setBackgroundOffset((prevOffset) => {
+        const newOffset = prevOffset + (parallaxSpeed * deltaTime) / 16;
+        return newOffset >= imageWidth ? 0 : newOffset;
+      });
+
+      // Update tree offset
+      setTreeOffset((prevOffset) => {
+        const newOffset = prevOffset + (parallaxSpeed * 2.5 * deltaTime) / 16;
+        if (newOffset >= screenWidth) {
+          setCurrentTree1((prev) =>
+            prev === Images.tree1 ? Images.tree2 : Images.tree1
+          );
+          setCurrentTree2((prev) =>
+            prev === Images.tree1 ? Images.tree2 : Images.tree1
+          );
+          return 0;
+        }
+        return newOffset;
+      });
+
+      // Update bush offset
+      setBushOffset((prevOffset) => {
+        const newOffset = prevOffset + (parallaxSpeed * 3.5 * deltaTime) / 16;
+        if (newOffset >= screenWidth) {
+          setCurrentBush1((prev) =>
+            prev === Images.bush1 ? Images.bush2 : Images.bush1
+          );
+          setCurrentBush2((prev) =>
+            prev === Images.bush1 ? Images.bush2 : Images.bush1
+          );
+          return 0;
+        }
+        return newOffset;
+      });
+
+      animationFrameRef.current = requestAnimationFrame(animate);
+    };
+
+    if (!isRewinding) {
+      animate();
+    }
+
+    return () => {
+      isAnimating = false;
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
       }
     };
-  }, []);
+  }, [isRewinding]); // Add isRewinding as a dependency
 
   return (
     <View style={styles.container}>
@@ -135,6 +189,15 @@ const Background = ({ offsetX, backgroundWidth }) => {
       </View>
     </View>
   );
+};
+
+// Add rewind function to Background component
+Background.rewindBackground = (frames) => {
+  if (backgroundHistory.length >= frames) {
+    const pastState = backgroundHistory[backgroundHistory.length - frames];
+    return pastState;
+  }
+  return null;
 };
 
 const styles = StyleSheet.create({
