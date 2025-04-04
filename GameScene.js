@@ -18,8 +18,10 @@ const GameScene = () => {
   const [offsetX, setOffsetX] = useState(0);
   const [backgroundWidth, setBackgroundWidth] = useState(800);
   const [lives, setLives] = useState(3);
+  const [score, setScore] = useState(0);
   const [isGameOver, setIsGameOver] = useState(false);
   const [isRewinding, setIsRewinding] = useState(false);
+  const [canJump, setCanJump] = useState(true);
   const gameEngineRef = useRef(null);
   const jumpSoundRef = useRef(null);
   const backgroundSoundRef = useRef(null);
@@ -81,13 +83,15 @@ const GameScene = () => {
   };
 
   const handleJump = () => {
-    if (isRunning && gameEntities.cat && gameEntities.cat.body) {
+    if (isRunning && gameEntities.cat && gameEntities.cat.body && canJump) {
+      // Disable jumping immediately
+      setCanJump(false);
+
       // Play jump sound
       if (jumpSoundRef.current) {
         jumpSoundRef.current.replayAsync();
       }
 
-      // Apply upward force to the cat's physics body
       Matter.Body.setVelocity(gameEntities.cat.body, { x: 0, y: -10 });
 
       // Set cat action to jump
@@ -98,6 +102,9 @@ const GameScene = () => {
         setTimeout(() => {
           if (isRunning && gameEntities.cat) {
             gameEntities.cat.action = "run";
+            setTimeout(() => {
+              setCanJump(true);
+            }, 200);
           }
         }, 700);
       }
@@ -109,7 +116,6 @@ const GameScene = () => {
       setOffsetX(e.offsetX);
       setBackgroundWidth(e.backgroundWidth);
     } else if (e.type === "hit-obstacle") {
-      console.log("Hit obstacle event received");
       setLives((prevLives) => {
         const newLives = prevLives - 1;
         if (newLives <= 0) {
@@ -120,11 +126,14 @@ const GameScene = () => {
       });
     } else if (e.type === "background-rewind") {
       setIsRewinding(e.isRewinding);
+    } else if (e.type === "coin-collected") {
+      setScore((prevScore) => prevScore + 1);
     }
   }, []);
 
   const handleRestart = () => {
     setLives(3);
+    setScore(0);
     setIsGameOver(false);
     setIsRunning(false);
 
@@ -145,6 +154,12 @@ const GameScene = () => {
     </View>
   );
 
+  const ScoreDisplay = () => (
+    <View style={styles.scoreContainer}>
+      <Text style={styles.scoreText}>Score: {score}</Text>
+    </View>
+  );
+
   return (
     <View style={styles.container}>
       <Background
@@ -153,6 +168,7 @@ const GameScene = () => {
         isRewinding={isRewinding}
       />
       <LivesDisplay />
+      <ScoreDisplay />
       <GameEngine
         ref={gameEngineRef}
         style={styles.gameContainer}
@@ -218,13 +234,27 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 20,
     left: 20,
-    zIndex: 10,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     padding: 10,
-    borderRadius: 5,
+    borderRadius: 10,
+    zIndex: 999,
+  },
+  scoreContainer: {
+    position: "absolute",
+    top: 20,
+    right: 20,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    padding: 10,
+    borderRadius: 10,
+    zIndex: 999,
   },
   livesText: {
-    color: "white",
+    color: "#fff",
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  scoreText: {
+    color: "#ffd700",
     fontSize: 20,
     fontWeight: "bold",
   },
