@@ -1,20 +1,44 @@
 import Matter from "matter-js";
 import Constants from "../Constants";
 
-let lastSpawnTime = 0;
-const scrollSpeed = 2;
+let lastSpawnTime = 3000; // Set initial delay to 3 seconds
+let isFirstSpawn = true; // Track if this is the first spawn
+const scrollSpeed = 1.5;
+const MIN_SPACING = 400; // Minimum distance between items
+const SPAWN_INTERVAL = 2000; // Base spawn interval
 
 const CoinObstacleSystem = (entities, { time }) => {
   const world = entities.physics.world;
   const screenHeight = Constants.SCREEN_HEIGHT;
   const now = time.current;
 
-  const spawnInterval = 2000; // every 2 seconds
+  // Find the rightmost item
+  let rightmostX = 0;
+  Object.keys(entities).forEach((key) => {
+    const entity = entities[key];
+    if (
+      entity.body &&
+      entity.body.position &&
+      !key.startsWith("floor") &&
+      key !== "physics" &&
+      key !== "cat"
+    ) {
+      rightmostX = Math.max(rightmostX, entity.body.position.x);
+    }
+  });
 
-  if (now - lastSpawnTime > spawnInterval) {
+  // Calculate next spawn position
+  const nextSpawnX = isFirstSpawn
+    ? Constants.SCREEN_WIDTH + 300
+    : Math.max(Constants.SCREEN_WIDTH + 100, rightmostX + MIN_SPACING);
+
+  // Simple spawn logic based on time interval and spacing
+  if (now - lastSpawnTime > SPAWN_INTERVAL) {
     lastSpawnTime = now;
-      
-    const spawnX = Constants.SCREEN_WIDTH + 100;
+
+    const spawnX = nextSpawnX;
+    isFirstSpawn = false;
+
     const spawnY = screenHeight - 250;
     const type = Math.random() > 0.5 ? "coin" : "obstacle";
 
