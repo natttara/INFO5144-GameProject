@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
   },
   catsContainer: {
     position: "absolute",
-    bottom: 100,
+    bottom: 230,
     width: "100%",
     alignItems: "center",
     zIndex: 5,

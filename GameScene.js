@@ -88,7 +88,7 @@ const GameScene = () => {
       }
 
       // Apply upward force to the cat's physics body
-      Matter.Body.setVelocity(gameEntities.cat.body, { x: 0, y: -15 });
+      Matter.Body.setVelocity(gameEntities.cat.body, { x: 0, y: -10 });
 
       // Set cat action to jump
       if (gameEntities.cat.renderer) {
