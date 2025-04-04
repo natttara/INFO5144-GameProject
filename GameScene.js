@@ -18,10 +18,11 @@ const GameScene = () => {
   const [offsetX, setOffsetX] = useState(0);
   const [backgroundWidth, setBackgroundWidth] = useState(800);
   const [lives, setLives] = useState(3);
-  const [coinCount, setCoinCount] = useState(0);
+  const [score, setScore] = useState(0);
   const [isGameOver, setIsGameOver] = useState(false);
   const [gameStatus, setGameStatus] = useState(null); // 'win' | 'lose'
   const [isRewinding, setIsRewinding] = useState(false);
+  const [canJump, setCanJump] = useState(true);
   const gameEngineRef = useRef(null);
   const jumpSoundRef = useRef(null);
   const backgroundSoundRef = useRef(null);
@@ -93,13 +94,15 @@ const GameScene = () => {
   };
 
   const handleJump = () => {
-    if (isRunning && gameEntities.cat && gameEntities.cat.body) {
+    if (isRunning && gameEntities.cat && gameEntities.cat.body && canJump) {
+      // Disable jumping immediately
+      setCanJump(false);
+
       // Play jump sound
       if (jumpSoundRef.current) {
         jumpSoundRef.current.replayAsync();
       }
 
-      // Apply upward force to the cat's physics body
       Matter.Body.setVelocity(gameEntities.cat.body, { x: 0, y: -10 });
 
       // Set cat action to jump
@@ -110,6 +113,9 @@ const GameScene = () => {
         setTimeout(() => {
           if (isRunning && gameEntities.cat) {
             gameEntities.cat.action = "run";
+            setTimeout(() => {
+              setCanJump(true);
+            }, 200);
           }
         }, 700);
       }
@@ -153,12 +159,14 @@ const GameScene = () => {
       
     } else if (e.type === "background-rewind") {
       setIsRewinding(e.isRewinding);
+    } else if (e.type === "coin-collected") {
+      setScore((prevScore) => prevScore + 1);
     }
   }, []);
 
   const handleRestart = () => {
     setLives(3);
-    setCoinCount(0);
+    setScore(0);
     setIsGameOver(false);
     setGameStatus(null);
     setIsRunning(false);
@@ -174,11 +182,17 @@ const GameScene = () => {
     }, 100);
   };
 
-  // const LivesDisplay = () => (
-  //   <View style={styles.livesContainer}>
-  //     <Text style={styles.livesText}>Lives: {lives}</Text>
-  //   </View>
-  // );
+  const LivesDisplay = () => (
+    <View style={styles.livesContainer}>
+      <Text style={styles.livesText}>Lives: {lives}</Text>
+    </View>
+  );
+
+  const ScoreDisplay = () => (
+    <View style={styles.scoreContainer}>
+      <Text style={styles.scoreText}>Score: {score}</Text>
+    </View>
+  );
 
   return (
     <View style={styles.container}>
@@ -187,7 +201,8 @@ const GameScene = () => {
         backgroundWidth={backgroundWidth}
         isRewinding={isRewinding}
       />
-      {/* <LivesDisplay /> */}
+      <LivesDisplay />
+      <ScoreDisplay />
       {/* heart and coin */}
       <View style={styles.heartAndCoin}>
         <View style={styles.heartContainer}>
@@ -278,6 +293,25 @@ const styles = StyleSheet.create({
     alignItems: "center",
     zIndex: 10,
   },
+  livesContainer: {
+    position: "absolute",
+    top: 20,
+    left: 20,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    padding: 10,
+    borderRadius: 10,
+    zIndex: 999,
+  },
+  scoreContainer: {
+    position: "absolute",
+    top: 20,
+    right: 20,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    padding: 10,
+    borderRadius: 10,
+    zIndex: 999,
+    right: 20,
+  },
   coinContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -289,6 +323,7 @@ const styles = StyleSheet.create({
   },
   counter: {
     color: "#fff",
+
     fontSize: 20,
     fontWeight: "bold",
   },
