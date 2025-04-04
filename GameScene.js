@@ -20,6 +20,7 @@ const GameScene = () => {
   const [lives, setLives] = useState(3);
   const [isGameOver, setIsGameOver] = useState(false);
   const [isRewinding, setIsRewinding] = useState(false);
+  const [canJump, setCanJump] = useState(true);
   const gameEngineRef = useRef(null);
   const jumpSoundRef = useRef(null);
   const backgroundSoundRef = useRef(null);
@@ -81,7 +82,10 @@ const GameScene = () => {
   };
 
   const handleJump = () => {
-    if (isRunning && gameEntities.cat && gameEntities.cat.body) {
+    if (isRunning && gameEntities.cat && gameEntities.cat.body && canJump) {
+      // Disable jumping immediately
+      setCanJump(false);
+
       // Play jump sound
       if (jumpSoundRef.current) {
         jumpSoundRef.current.replayAsync();
@@ -98,6 +102,10 @@ const GameScene = () => {
         setTimeout(() => {
           if (isRunning && gameEntities.cat) {
             gameEntities.cat.action = "run";
+            // Re-enable jumping after landing animation
+            setTimeout(() => {
+              setCanJump(true);
+            }, 200); // 500ms cooldown after landing
           }
         }, 700);
       }
