@@ -23,9 +23,9 @@ export default (gameWorld) => {
   const catSize = 100;
   const catBody = Matter.Bodies.rectangle(
     60,
-    screenHeight - 200,
-    catSize,
-    catSize,
+    screenHeight - floorHeight - catSize / 2,
+    catSize * 0.8,
+    catSize * 0.8,
     {
       label: "cat",
       friction: 0.1,
@@ -33,38 +33,44 @@ export default (gameWorld) => {
       density: 1,
       inertia: Infinity,
       frictionAir: 0.001,
-      render: {
-        visible: false,
+      isSensor: false,
+      collisionFilter: {
+        category: 0x0001, // Cat category
+        mask: 0xffffffff, // Collide with everything
+        group: 0,
       },
     }
   );
 
-  Matter.World.add(world, [catBody]);
+  // Create floor body
+  const floorBody = Matter.Bodies.rectangle(
+    screenWidth / 2,
+    floorY,
+    screenWidth * 2,
+    floorHeight,
+    {
+      isStatic: true,
+      label: "floor",
+      friction: 1,
+      collisionFilter: {
+        category: 0x0004, // Floor category
+        mask: 0x0001, // Only collide with cat
+        group: 0,
+      },
+    }
+  );
 
-  // Collision detection
-  Matter.Events.on(engine, "collisionStart", (event) => {
-    event.pairs.forEach(({ bodyA, bodyB }) => {
-      const labels = [bodyA.label, bodyB.label];
+  // Add bodies to world
+  Matter.World.add(world, [catBody, floorBody]);
 
-      if (labels.includes("cat") && labels.includes("coin")) {
-        gameWorld.dispatch({ type: "coin-collected" });
-        Matter.World.remove(world, bodyA.label === "coin" ? bodyA : bodyB);
-      }
-
-      if (labels.includes("cat") && labels.includes("obstacle")) {
-        gameWorld.dispatch({ type: "hit-obstacle" });
-      }
-    });
-  });
-
-  const entities = {
+  return {
     physics: { engine, world },
-    lastDispatchTime: 0, // For safe dispatch throttling
 
-    cat: Cat({
+    cat: {
       body: catBody,
       size: catSize,
-    }),
+      renderer: Cat,
+    },
 
     floor1: Floor(
       world,
@@ -80,6 +86,4 @@ export default (gameWorld) => {
       Images.grass
     ),
   };
-
-  return entities;
 };
