@@ -38,50 +38,17 @@ const Cat = ({
   };
 
   useEffect(() => {
-    const prevAction = prevActionRef.current;
-
-    if (catRef.current && action !== prevAction) {
+    if (action !== prevActionRef.current) {
       prevActionRef.current = action;
-      console.log("Cat action changed to:", action);
-
-      if (action === "jump") {
-        catRef.current.stop();
-        catRef.current.play({
-          type: "jump",
-          fps: 12,
-          loop: false,
-          onComplete: () => {
-            console.log("Jump animation completed");
-            if (isRunning) {
-              catRef.current.play({
-                type: "run",
-                fps: 8,
-                loop: true,
-              });
-            } else {
-              catRef.current.play({
-                type: "idle",
-                fps: 8,
-                loop: true,
-              });
-            }
-          },
-        });
-      } else if (isRunning && action !== "idle") {
+      if (catRef.current) {
         catRef.current.play({
           type: action,
           fps: 8,
           loop: true,
         });
-      } else {
-        catRef.current.play({
-          type: "idle",
-          fps: 8,
-          loop: true,
-        });
       }
     }
-  }, [action, isRunning]);
+  }, [action]);
 
   // Also trigger animation changes when isRunning changes
   useEffect(() => {
@@ -110,6 +77,16 @@ const Cat = ({
       }
     : {};
 
+  const onPlayComplete = () => {
+    if (action === "jump") {
+      catRef.current?.play({
+        type: "run",
+        fps: 8,
+        loop: true,
+      });
+    }
+  };
+
   return (
     <View
       style={[
@@ -130,14 +107,7 @@ const Cat = ({
             animations[isRunning ? action : "idle"],
         }}
         onLoad={() => {
-          console.log(`Sprite sheet loaded for ${isRunning ? action : "idle"}`);
-          if (!isRunning) {
-            catRef.current?.play({
-              type: "idle",
-              fps: 8,
-              loop: true,
-            });
-          } else if (action === "run") {
+          if (isRunning && action === "run") {
             catRef.current?.play({
               type: "run",
               fps: 8,
