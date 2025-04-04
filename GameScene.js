@@ -12,6 +12,7 @@ import { Audio } from "expo-av";
 import CoinObstacleSystem from "./systems/CoinObstacleSystem";
 import PauseScreen from "./components/PauseScreen";
 import RestartButton from "./components/RestartButton";
+import Images from "./Images";
 
 const GameScene = () => {
   const [isRunning, setIsRunning] = useState(true);
@@ -19,7 +20,7 @@ const GameScene = () => {
   const [backgroundWidth, setBackgroundWidth] = useState(800);
   const [lives, setLives] = useState(3);
   const [score, setScore] = useState(0);
-  const [isGameOver, setIsGameOver] = useState(false);
+  // const [isGameOver, setIsGameOver] = useState(false);
   const [gameStatus, setGameStatus] = useState(null); // 'win' | 'lose'
   const [isRewinding, setIsRewinding] = useState(false);
   const [canJump, setCanJump] = useState(true);
@@ -123,17 +124,17 @@ const GameScene = () => {
   };
 
   const onEvent = useCallback((e) => {
-    if (e.type === "floor-offset") {
-      setOffsetX(e.offsetX);
-      setBackgroundWidth(e.backgroundWidth);
-    } else if (e.type === "coin-collected") {
-      setCoinCount((prev) => {
-        const newCount = prev + 1;
-        if (newCount >= 10) {
-          setGameStatus("win");
-          setIsRunning(false);
-        }
-        return newCount;
+  if (e.type === "floor-offset") {
+    setOffsetX(e.offsetX);
+    setBackgroundWidth(e.backgroundWidth);
+  } else if (e.type === "coin-collected") {
+    setScore((prev) => {
+      const newScore = prev + 1;
+      if (newScore >= 5) {
+        setGameStatus("win");
+        setIsRunning(false);
+      }
+      return newScore;
       });
     } else if (e.type === "hit-obstacle") {
       console.log("Hit obstacle event received");
@@ -145,7 +146,7 @@ const GameScene = () => {
       setLives((prevLives) => {
         const newLives = prevLives - 1;
         if (newLives <= 0) {
-          setIsGameOver("lose");
+          setGameStatus("lose");
           setIsRunning(false);
         }
         return newLives;
@@ -159,15 +160,12 @@ const GameScene = () => {
       
     } else if (e.type === "background-rewind") {
       setIsRewinding(e.isRewinding);
-    } else if (e.type === "coin-collected") {
-      setScore((prevScore) => prevScore + 1);
-    }
+    } 
   }, []);
 
   const handleRestart = () => {
     setLives(3);
     setScore(0);
-    setIsGameOver(false);
     setGameStatus(null);
     setIsRunning(false);
 
@@ -182,18 +180,6 @@ const GameScene = () => {
     }, 100);
   };
 
-  const LivesDisplay = () => (
-    <View style={styles.livesContainer}>
-      <Text style={styles.livesText}>Lives: {lives}</Text>
-    </View>
-  );
-
-  const ScoreDisplay = () => (
-    <View style={styles.scoreContainer}>
-      <Text style={styles.scoreText}>Score: {score}</Text>
-    </View>
-  );
-
   return (
     <View style={styles.container}>
       <Background
@@ -201,22 +187,20 @@ const GameScene = () => {
         backgroundWidth={backgroundWidth}
         isRewinding={isRewinding}
       />
-      <LivesDisplay />
-      <ScoreDisplay />
       {/* heart and coin */}
       <View style={styles.heartAndCoin}>
         <View style={styles.heartContainer}>
           {[...Array(lives > 0 ? lives : 0)].map((_, i) => (
             <Image
               key={i}
-              source={require("./assets/heart.png")}
+              source={Images.heart}
               style={styles.heart}
             />
           ))}
         </View>
         <View style={styles.coinContainer}>
-          <Image source={require("./assets/coin.png")} style={styles.icon} />
-          <Text style={styles.counter}>{coinCount}</Text>
+          <Image source={Images.coin} style={styles.icon} />
+          <Text style={styles.counter}>{score}</Text>
         </View>
       </View>
       <GameEngine
@@ -293,25 +277,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     zIndex: 10,
   },
-  livesContainer: {
-    position: "absolute",
-    top: 20,
-    left: 20,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    padding: 10,
-    borderRadius: 10,
-    zIndex: 999,
-  },
-  scoreContainer: {
-    position: "absolute",
-    top: 20,
-    right: 20,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    padding: 10,
-    borderRadius: 10,
-    zIndex: 999,
-    right: 20,
-  },
   coinContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -323,7 +288,6 @@ const styles = StyleSheet.create({
   },
   counter: {
     color: "#fff",
-
     fontSize: 20,
     fontWeight: "bold",
   },

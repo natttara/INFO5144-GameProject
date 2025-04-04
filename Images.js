@@ -22,6 +22,7 @@ const Images = {
   restart: require("./assets/restart.png"),
   forest: require("./assets/background/forest.png"),
   coin: require("./assets/coin.png"),
+  heart: require("./assets/heart.png"),
 };
 
 export default Images;
