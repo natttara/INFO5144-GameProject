@@ -3,7 +3,7 @@ import Constants from "../Constants";
 
 let lastSpawnTime = 3000; // Set initial delay to 3 seconds
 let isFirstSpawn = true; // Track if this is the first spawn
-const scrollSpeed = 1.5;
+const scrollSpeed = 1;
 const MIN_SPACING = 400; // Minimum distance between items
 const SPAWN_INTERVAL = 2000; // Base spawn interval
 
@@ -12,22 +12,20 @@ const CoinObstacleSystem = (entities, { time }) => {
   const screenHeight = Constants.SCREEN_HEIGHT;
   const now = time.current;
 
-  // Find the rightmost item
+  // Find the rightmost item (both coins and obstacles)
   let rightmostX = 0;
   Object.keys(entities).forEach((key) => {
     const entity = entities[key];
     if (
       entity.body &&
       entity.body.position &&
-      !key.startsWith("floor") &&
-      key !== "physics" &&
-      key !== "cat"
+      (key.startsWith("obstacle") || key.startsWith("coin"))
     ) {
       rightmostX = Math.max(rightmostX, entity.body.position.x);
     }
   });
 
-  // Calculate next spawn position
+  // Calculate next spawn position based on all items
   const nextSpawnX = isFirstSpawn
     ? Constants.SCREEN_WIDTH + 300
     : Math.max(Constants.SCREEN_WIDTH + 100, rightmostX + MIN_SPACING);
