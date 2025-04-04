@@ -97,7 +97,6 @@ const Cat = ({ action = "idle", style, size = 180, isRunning = true }) => {
 const styles = StyleSheet.create({
   catContainer: {
     position: "absolute",
-    // bottom: 60,
     width: "100%",
     alignItems: "center",
     backgroundColor: "transparent",

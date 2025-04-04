@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { View, StyleSheet, Animated } from "react-native";
 import { GameEngine } from "react-native-game-engine";
 import MovementSystem from "./systems/MovementSystem";
@@ -20,7 +20,7 @@ const GameScene = () => {
   const gameEngineRef = useRef(null);
   const jumpY = useRef(new Animated.Value(0)).current;
   const jumpSoundRef = useRef(null);
-  const backgroundSoundRef = useRef(null); 
+  const backgroundSoundRef = useRef(null);
   const [showPauseScreen, setShowPauseScreen] = useState(false);
 
   // Load jump sound once
@@ -44,33 +44,33 @@ const GameScene = () => {
 
   // Load and play background music
   useEffect(() => {
-  let isMounted = true;
+    let isMounted = true;
 
-  const loadAndPlayMusic = async () => {
-    try {
-      const { sound } = await Audio.Sound.createAsync(
-        require("./assets/sounds/bgSound-2.mp3"),
-        { isLooping: true, volume: 1 }
-      );
-      if (isMounted) {
-        backgroundSoundRef.current = sound;
-        await sound.playAsync();
-        console.log("Background music playing...");
+    const loadAndPlayMusic = async () => {
+      try {
+        const { sound } = await Audio.Sound.createAsync(
+          require("./assets/sounds/bgSound-2.mp3"),
+          { isLooping: true, volume: 1 }
+        );
+        if (isMounted) {
+          backgroundSoundRef.current = sound;
+          await sound.playAsync();
+          console.log("Background music playing...");
+        }
+      } catch (error) {
+        console.warn("Failed to load background music:", error);
       }
-    } catch (error) {
-      console.warn("Failed to load background music:", error);
-    }
-  };
+    };
 
-  loadAndPlayMusic();
+    loadAndPlayMusic();
 
-  return () => {
-    isMounted = false;
-    if (backgroundSoundRef.current) {
-      backgroundSoundRef.current.unloadAsync();
-    }
-  };
-}, []);
+    return () => {
+      isMounted = false;
+      if (backgroundSoundRef.current) {
+        backgroundSoundRef.current.unloadAsync();
+      }
+    };
+  }, []);
 
   // const togglePause = () => {
   //   setIsRunning(!isRunning);
@@ -78,12 +78,10 @@ const GameScene = () => {
 
   //for Pause screen
   const togglePause = () => {
-  setIsRunning(prev => {
-    const newRunning = !prev;
+    const newRunning = !isRunning;
+    setIsRunning(newRunning);
     setShowPauseScreen(!newRunning);
-    return newRunning;
-  });
-};
+  };
 
   const handleJump = () => {
     if (catAction !== "jump") {
@@ -101,7 +99,7 @@ const GameScene = () => {
           useNativeDriver: true,
         }),
         Animated.timing(jumpY, {
-          toValue: 0, 
+          toValue: 0,
           duration: 350,
           useNativeDriver: true,
         }),
@@ -111,17 +109,17 @@ const GameScene = () => {
     }
   };
 
-  const onEvent = (e) => {
+  const onEvent = useCallback((e) => {
     if (e.type === "floor-offset") {
       setOffsetX(e.offsetX);
       setBackgroundWidth(e.backgroundWidth);
     }
-  };
+  }, []);
 
   const handleRestart = () => {
     setIsRunning(false);
     setTimeout(() => {
-      setIsRunning(true);    
+      setIsRunning(true);
     }, 100);
   };
 
@@ -137,10 +135,11 @@ const GameScene = () => {
         onEvent={onEvent}
       />
       {/* <Cat action="run" size={100} style={styles.cat} isRunning={isRunning} /> */}
-      <Animated.View style={[styles.cat, { transform: [{ translateY: jumpY }] }]}>
+      <Animated.View
+        style={[styles.cat, { transform: [{ translateY: jumpY }] }]}>
         <Cat action={catAction} size={100} isRunning={isRunning} />
       </Animated.View>
-      
+
       <View style={styles.controlsRow}>
         <JumpButton onPress={handleJump} />
         <PauseButton onPress={togglePause} />
@@ -183,7 +182,7 @@ const styles = StyleSheet.create({
   },
   cat: {
     position: "absolute",
-    bottom: 175,
+    bottom: 200,
     left: 60,
     zIndex: 2,
   },
