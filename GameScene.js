@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { View, StyleSheet, Animated } from "react-native";
 import { GameEngine } from "react-native-game-engine";
 import MovementSystem from "./systems/MovementSystem";
@@ -78,11 +78,9 @@ const GameScene = () => {
 
   //for Pause screen
   const togglePause = () => {
-    setIsRunning((prev) => {
-      const newRunning = !prev;
-      setShowPauseScreen(!newRunning);
-      return newRunning;
-    });
+    const newRunning = !isRunning;
+    setIsRunning(newRunning);
+    setShowPauseScreen(!newRunning);
   };
 
   const handleJump = () => {
@@ -111,12 +109,12 @@ const GameScene = () => {
     }
   };
 
-  const onEvent = (e) => {
+  const onEvent = useCallback((e) => {
     if (e.type === "floor-offset") {
       setOffsetX(e.offsetX);
       setBackgroundWidth(e.backgroundWidth);
     }
-  };
+  }, []);
 
   const handleRestart = () => {
     setIsRunning(false);

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { View, Image, StyleSheet } from "react-native";
 import Images from "../Images";
 
@@ -10,14 +10,20 @@ const Background = ({ offsetX, backgroundWidth }) => {
   const [currentTree2, setCurrentTree2] = useState(Images.tree2);
   const [currentBush1, setCurrentBush1] = useState(Images.bush1);
   const [currentBush2, setCurrentBush2] = useState(Images.bush2);
-  const parallaxSpeed = 0.3;
+  const animationFrameRef = useRef(null);
+  const lastUpdateRef = useRef(Date.now());
+  const parallaxSpeed = 1; // Base speed
   const imageWidth = 1363;
   const screenWidth = 800;
 
-  useEffect(() => {
+  const animate = () => {
+    const now = Date.now();
+    const deltaTime = now - lastUpdateRef.current;
+    lastUpdateRef.current = now;
+
     // Update background offset
     setBackgroundOffset((prevOffset) => {
-      const newOffset = prevOffset + parallaxSpeed;
+      const newOffset = prevOffset + (parallaxSpeed * deltaTime) / 16;
       if (newOffset >= imageWidth) {
         return 0;
       }
@@ -26,9 +32,8 @@ const Background = ({ offsetX, backgroundWidth }) => {
 
     // Update tree offset
     setTreeOffset((prevOffset) => {
-      const newOffset = prevOffset + parallaxSpeed * 1.3;
+      const newOffset = prevOffset + (parallaxSpeed * 1.8 * deltaTime) / 16;
       if (newOffset >= screenWidth) {
-        // Switch tree images when resetting
         setCurrentTree1((prev) =>
           prev === Images.tree1 ? Images.tree2 : Images.tree1
         );
@@ -42,9 +47,8 @@ const Background = ({ offsetX, backgroundWidth }) => {
 
     // Update bush offset
     setBushOffset((prevOffset) => {
-      const newOffset = prevOffset + parallaxSpeed * 2;
+      const newOffset = prevOffset + (parallaxSpeed * 3.2 * deltaTime) / 16;
       if (newOffset >= screenWidth) {
-        // Switch bush images when resetting
         setCurrentBush1((prev) =>
           prev === Images.bush1 ? Images.bush2 : Images.bush1
         );
@@ -55,7 +59,18 @@ const Background = ({ offsetX, backgroundWidth }) => {
       }
       return newOffset;
     });
-  }, [offsetX]);
+
+    animationFrameRef.current = requestAnimationFrame(animate);
+  };
+
+  useEffect(() => {
+    animationFrameRef.current = requestAnimationFrame(animate);
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, []);
 
   return (
     <View style={styles.container}>

@@ -3,7 +3,7 @@ import Constants from "../Constants";
 
 let lastSpawnTime = 3000; // Set initial delay to 3 seconds
 let isFirstSpawn = true; // Track if this is the first spawn
-const scrollSpeed = 1;
+const scrollSpeed = 3; // Increased from 1 to 3 to match MovementSystem
 const MIN_SPACING = 400; // Minimum distance between items
 const SPAWN_INTERVAL = 2000; // Base spawn interval
 

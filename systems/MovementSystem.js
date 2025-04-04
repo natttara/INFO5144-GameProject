@@ -3,7 +3,7 @@ import Constants from "../Constants";
 const MovementSystem = (entities, { time, dispatch }) => {
   const floor1 = entities.floor1;
   const floor2 = entities.floor2;
-  const scrollSpeed = 2;
+  const scrollSpeed = 3;
   const screenWidth = Constants.SCREEN_WIDTH;
   const backgroundWidth = 800;
   const coin = entities.coin?.body;
@@ -38,6 +38,7 @@ const MovementSystem = (entities, { time, dispatch }) => {
       />
     );
   }
+
   // Move coin
   if (coin) {
     coin.position.x -= scrollSpeed;
@@ -48,11 +49,15 @@ const MovementSystem = (entities, { time, dispatch }) => {
     obstacle.position.x -= scrollSpeed;
   }
 
-  dispatch({
-    type: "floor-offset",
-    offsetX: floor1?.offsetX || 0,
-    backgroundWidth,
-  });
+  // Only dispatch every 100ms to reduce state updates
+  if (time.current - entities.physics.lastDispatchTime > 100) {
+    entities.physics.lastDispatchTime = time.current;
+    dispatch({
+      type: "floor-offset",
+      offsetX: floor1?.offsetX || 0,
+      backgroundWidth,
+    });
+  }
 
   return entities;
 };
