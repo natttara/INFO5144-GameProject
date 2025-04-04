@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { View, StyleSheet, Text, TouchableOpacity } from "react-native";
+import { View, StyleSheet, Text, TouchableOpacity, Image } from "react-native";
 import { GameEngine } from "react-native-game-engine";
 import Matter from "matter-js";
 import MovementSystem from "./systems/MovementSystem";
@@ -18,30 +18,42 @@ const GameScene = () => {
   const [offsetX, setOffsetX] = useState(0);
   const [backgroundWidth, setBackgroundWidth] = useState(800);
   const [lives, setLives] = useState(3);
+  const [coinCount, setCoinCount] = useState(0);
   const [isGameOver, setIsGameOver] = useState(false);
+  const [gameStatus, setGameStatus] = useState(null); // 'win' | 'lose'
   const [isRewinding, setIsRewinding] = useState(false);
   const gameEngineRef = useRef(null);
   const jumpSoundRef = useRef(null);
   const backgroundSoundRef = useRef(null);
+  const collisionSoundRef = useRef(null);
   const [showPauseScreen, setShowPauseScreen] = useState(false);
   const gameEntities = useRef(entities()).current;
 
   // Load jump sound once
   useEffect(() => {
-    const loadJumpSound = async () => {
-      const { sound } = await Audio.Sound.createAsync(
-        require("./assets/sounds/Jump.mp3"),
-        { isLooping: false, volume: 0.4 }
-      );
-      jumpSoundRef.current = sound;
+    const loadSounds = async () => {
+      try {
+        const { sound: jump } = await Audio.Sound.createAsync(
+          require("./assets/sounds/Jump.mp3"),
+          { isLooping: false, volume: 0.4 }
+        );
+        jumpSoundRef.current = jump;
+
+        const { sound: hit } = await Audio.Sound.createAsync(
+          require("./assets/sounds/Collision.mp3"),
+          { isLooping: false, volume: 1 }
+        );
+        collisionSoundRef.current = hit;
+      } catch (error) {
+        console.warn("Error loading sounds:", error);
+      }
     };
 
-    loadJumpSound();
+    loadSounds();
 
     return () => {
-      if (jumpSoundRef.current) {
-        jumpSoundRef.current.unloadAsync();
-      }
+      jumpSoundRef.current?.unloadAsync();
+      collisionSoundRef.current?.unloadAsync();
     };
   }, []);
 
@@ -108,16 +120,37 @@ const GameScene = () => {
     if (e.type === "floor-offset") {
       setOffsetX(e.offsetX);
       setBackgroundWidth(e.backgroundWidth);
+    } else if (e.type === "coin-collected") {
+      setCoinCount((prev) => {
+        const newCount = prev + 1;
+        if (newCount >= 10) {
+          setGameStatus("win");
+          setIsRunning(false);
+        }
+        return newCount;
+      });
     } else if (e.type === "hit-obstacle") {
       console.log("Hit obstacle event received");
+      // Play collision sound
+      if (collisionSoundRef.current) {
+        collisionSoundRef.current.replayAsync();
+      }
+
       setLives((prevLives) => {
         const newLives = prevLives - 1;
         if (newLives <= 0) {
-          setIsGameOver(true);
+          setIsGameOver("lose");
           setIsRunning(false);
         }
         return newLives;
       });
+
+       setTimeout(() => {
+        if (gameEntities.cat) {
+          gameEntities.cat.action = "run";
+        }
+       }, 500);
+      
     } else if (e.type === "background-rewind") {
       setIsRewinding(e.isRewinding);
     }
@@ -125,7 +158,9 @@ const GameScene = () => {
 
   const handleRestart = () => {
     setLives(3);
+    setCoinCount(0);
     setIsGameOver(false);
+    setGameStatus(null);
     setIsRunning(false);
 
     // Reset entities
@@ -139,11 +174,11 @@ const GameScene = () => {
     }, 100);
   };
 
-  const LivesDisplay = () => (
-    <View style={styles.livesContainer}>
-      <Text style={styles.livesText}>Lives: {lives}</Text>
-    </View>
-  );
+  // const LivesDisplay = () => (
+  //   <View style={styles.livesContainer}>
+  //     <Text style={styles.livesText}>Lives: {lives}</Text>
+  //   </View>
+  // );
 
   return (
     <View style={styles.container}>
@@ -152,7 +187,23 @@ const GameScene = () => {
         backgroundWidth={backgroundWidth}
         isRewinding={isRewinding}
       />
-      <LivesDisplay />
+      {/* <LivesDisplay /> */}
+      {/* heart and coin */}
+      <View style={styles.heartAndCoin}>
+        <View style={styles.heartContainer}>
+          {[...Array(lives > 0 ? lives : 0)].map((_, i) => (
+            <Image
+              key={i}
+              source={require("./assets/heart.png")}
+              style={styles.heart}
+            />
+          ))}
+        </View>
+        <View style={styles.coinContainer}>
+          <Image source={require("./assets/coin.png")} style={styles.icon} />
+          <Text style={styles.counter}>{coinCount}</Text>
+        </View>
+      </View>
       <GameEngine
         ref={gameEngineRef}
         style={styles.gameContainer}
@@ -168,25 +219,28 @@ const GameScene = () => {
         <RestartButton onPress={handleRestart} />
       </View>
 
-      {isGameOver && (
+      {gameStatus === "lose" && (
         <View style={styles.gameOverContainer}>
-          <View style={styles.gameOverBox}>
-            <Text style={styles.gameOverText}>Game Over!</Text>
-            <TouchableOpacity
-              style={styles.restartButton}
-              onPress={handleRestart}>
-              <Text style={styles.restartButtonText}>Play Again</Text>
-            </TouchableOpacity>
-          </View>
+          <Text style={styles.gameOverText}>Game Over</Text>
+          <TouchableOpacity style={styles.restartButton} onPress={handleRestart}>
+            <Text style={styles.restartButtonText}>Play Again</Text>
+          </TouchableOpacity>
         </View>
       )}
 
-      {showPauseScreen && !isGameOver && (
+      {gameStatus === "win" && (
+        <View style={styles.gameOverContainer}>
+          <Text style={styles.gameOverText}>You Win!</Text>
+          <TouchableOpacity style={styles.restartButton} onPress={handleRestart}>
+            <Text style={styles.restartButtonText}>Play Again</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {showPauseScreen && !gameStatus && (
         <PauseScreen
           onResume={togglePause}
-          onExit={() => {
-            setShowPauseScreen(false);
-          }}
+          onExitToStart={handleRestart}
         />
       )}
     </View>
@@ -214,19 +268,37 @@ const styles = StyleSheet.create({
     alignItems: "center",
     zIndex: 1,
   },
-  livesContainer: {
+  heartAndCoin: {
     position: "absolute",
-    top: 20,
+    top: 30,
     left: 20,
+    right: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     zIndex: 10,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    padding: 10,
-    borderRadius: 5,
   },
-  livesText: {
-    color: "white",
+  coinContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  icon: {
+    width: 30,
+    height: 30,
+    marginRight: 5,
+  },
+  counter: {
+    color: "#fff",
     fontSize: 20,
     fontWeight: "bold",
+  },
+  heartContainer: {
+    flexDirection: "row",
+  },
+  heart: {
+    width: 30,
+    height: 30,
+    marginLeft: 5,
   },
   gameOverContainer: {
     position: "absolute",
@@ -234,16 +306,10 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    backgroundColor: "rgba(239, 235, 235, 0.7)",
     justifyContent: "center",
     alignItems: "center",
     zIndex: 100,
-  },
-  gameOverBox: {
-    backgroundColor: "white",
-    padding: 20,
-    borderRadius: 10,
-    alignItems: "center",
   },
   gameOverText: {
     fontSize: 30,
