@@ -30,7 +30,8 @@ const GameScene = ({ onExitToStart }) => {
   const collisionSoundRef = useRef(null);
   const coinSoundRef = useRef(null);
   const [showPauseScreen, setShowPauseScreen] = useState(false);
-  const gameEntities = useRef(entities()).current;
+  const [gameEntities, setGameEntities] = useState(() => entities());
+  const gameEntitiesRef = useRef(gameEntities);
 
   // Load jump, hit, coin sound 
   useEffect(() => {
@@ -102,31 +103,36 @@ const GameScene = ({ onExitToStart }) => {
     setShowPauseScreen(!newRunning);
   };
 
+  // Sync the ref whenever state updates
+  useEffect(() => {
+    gameEntitiesRef.current = gameEntities;
+  }, [gameEntities]);
+
   const handleJump = () => {
-    if (isRunning && gameEntities.cat && gameEntities.cat.body && canJump) {
+    const catEntity = gameEntitiesRef.current?.cat;
+    if (isRunning && catEntity?.body && canJump) {
       // Disable jumping immediately
       setCanJump(false);
-
       // Play jump sound
       if (jumpSoundRef.current) {
         jumpSoundRef.current.replayAsync();
       }
 
-      Matter.Body.setVelocity(gameEntities.cat.body, { x: 0, y: -10 });
-
-      // Set cat action to jump
-      if (gameEntities.cat.renderer) {
-        gameEntities.cat.action = "jump";
-
-        // Reset to run after jump animation
-        setTimeout(() => {
-          if (isRunning && gameEntities.cat) {
-            gameEntities.cat.action = "run";
-            setTimeout(() => {
-              setCanJump(true);
-            }, 200);
-          }
-        }, 700);
+      try{
+        Matter.Body.setVelocity(catEntity.body, { x: 0, y: -10 });
+        // Set cat action to jump
+        if (catEntity.renderer) {
+          catEntity.action = "jump";
+          setTimeout(() => {
+            // Reset to run after jump animation
+            if (isRunning && catEntity) {
+              catEntity.action = "run";
+              setTimeout(() => setCanJump(true), 200); 
+            }
+          }, 700);
+        }
+      }catch (error) {
+        console.warn("Failed to jump:", error);
       }
     }
   };
@@ -164,11 +170,11 @@ const GameScene = ({ onExitToStart }) => {
         return newLives;
       });
 
-       setTimeout(() => {
-        if (gameEntities.cat) {
-          gameEntities.cat.action = "run";
+      setTimeout(() => {
+        if (gameEntitiesRef.current.cat) {
+          gameEntitiesRef.current.cat.action = "run";
         }
-       }, 500);
+      }, 500);
       
     } else if (e.type === "background-rewind") {
       setIsRewinding(e.isRewinding);
@@ -180,16 +186,20 @@ const GameScene = ({ onExitToStart }) => {
     setScore(0);
     setGameStatus(null);
     setIsRunning(false);
+    setCanJump(true);
 
     // Reset entities
-    const resetEntities = entities();
+    const newEntities = entities();
+    setGameEntities(newEntities);  // update state for <GameEngine />
+    gameEntitiesRef.current = newEntities; // update ref for logic use
+
     if (gameEngineRef.current) {
-      gameEngineRef.current.swap(resetEntities);
+      gameEngineRef.current.swap(newEntities);
     }
 
     setTimeout(() => {
       setIsRunning(true);
-    }, 100);
+    }, 200);
   };
 
   return (
@@ -302,11 +312,6 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     marginLeft: 5,
-  },
-  restartButton: {
-    backgroundColor: "#4CAF50",
-    padding: 15,
-    borderRadius: 5,
   },
 });
 

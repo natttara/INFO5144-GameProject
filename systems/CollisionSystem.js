@@ -15,10 +15,19 @@ const gameState = {
   rewindStartTime: 0,
 };
 
-const CollisionSystem = (entities, { events, dispatch, time }) => {
-  const engine = entities.physics.engine;
-  const world = engine.world;
+const CollisionSystem = (entities, { dispatch, time }) => {
+  const engine = entities.physics?.engine;
+  const world = entities.physics?.world;
   const cat = entities.cat;
+
+  if (!engine) {
+    console.warn("CollisionSystem: engine is undefined - skipping this frame");
+    return entities;
+  }
+  if (!world) {
+    console.warn("CollisionSystem: physics.world is undefined - skipping this frame");
+    return entities;
+  }
 
   // Handle rewinding state
   if (gameState.isRewinding) {
