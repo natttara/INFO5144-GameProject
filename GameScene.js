@@ -224,7 +224,7 @@ const GameScene = ({ onExitToStart }) => {
         onEvent={onEvent}
       />
 
-      {!gameStatus && (
+      {!gameStatus && !showPauseScreen &&(
         <View style={styles.controlsRow}>
           <JumpButton onPress={handleJump} />
           <PauseButton onPress={togglePause} />
@@ -243,7 +243,7 @@ const GameScene = ({ onExitToStart }) => {
       {showPauseScreen && !gameStatus && (
         <PauseScreen
           onResume={togglePause}
-          onExitToStart={handleRestart}
+          onExitToStart={onExitToStart}
         />
       )}
     </View>
