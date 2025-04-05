@@ -117,18 +117,6 @@ const styles = StyleSheet.create({
         textShadowOffset: { width: -1, height: 1 },
         textShadowRadius: 10,
     },
-    playAgainBtn: {
-        backgroundColor: "#FF4444",
-        paddingVertical: 10,
-        paddingHorizontal: 30,
-        borderRadius: 8,
-        marginTop: 10,
-    },
-    playAgainText: {
-        fontSize: 18,
-        color: "#fff",
-        fontWeight: "bold",
-    },
     pawWrapper: {
         alignItems: "center",
         justifyContent: "center",
@@ -143,7 +131,8 @@ const styles = StyleSheet.create({
     },
     pawButtonText: {
         position: "absolute",
-        top: 130,
+        top: "85%",
+        transform: [{ translateY: -10 }],
         color: "#fff",
         alignSelf: "center",
         fontSize: 18,

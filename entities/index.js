@@ -3,12 +3,10 @@ import Constants from "../Constants";
 import Images from "../Images";
 import Floor from "../components/Floor";
 import Cat from "../components/Cat";
-import Coin from "../components/Coin";
-import Obstacle from "../components/Obstacle";
 
-export default (gameWorld) => {
-  let engine = Matter.Engine.create({ enableSleeping: false });
-  let world = engine.world;
+export default () => {
+  const engine = Matter.Engine.create({ enableSleeping: false });
+  const world = engine.world;
   engine.gravity.y = 0.8;
 
   let screenWidth = Constants.SCREEN_WIDTH;

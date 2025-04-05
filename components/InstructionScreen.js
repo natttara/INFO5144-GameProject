@@ -32,17 +32,17 @@ const InstructionScreen = ({ onNext }) => {
             <View style={styles.box}>
               <Text style={styles.title}>How to play!</Text>
               <View style={styles.bulletRow}>
-                <FontAwesome name="paw" size={20} color="#ffd026" style={styles.bulletIcon} />
+                <FontAwesome name="paw" style={styles.bulletIcon} />
                 <Text style={styles.bulletText}>Press the Jump Paw to Jump</Text>
               </View>
 
               <View style={styles.bulletRow}>
-                <FontAwesome name="paw" size={20} color="#ffd026" style={styles.bulletIcon} />
-                <Text style={styles.bulletText}>Collect the coin</Text>
+                <FontAwesome name="paw" style={styles.bulletIcon} />
+                <Text style={styles.bulletText}>Collect 5 coins to win</Text>
               </View>
 
               <View style={styles.bulletRow}>
-                <FontAwesome name="paw" size={20} color="#ffd026" style={styles.bulletIcon} />
+                <FontAwesome name="paw" style={styles.bulletIcon} />
                 <Text style={styles.bulletText}>You have only 3 lives!</Text>
               </View>
             </View>
@@ -94,6 +94,8 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   bulletIcon: {
+    color: '#ffd026',
+    fontSize: 24,
     marginRight: 10,
   },
   bulletText: {

@@ -15,6 +15,11 @@ const MovementSystem = (entities, { time, dispatch }) => {
   const coin = entities.coin?.body;
   const obstacle = entities.obstacle?.body;
 
+  // create an empty one so we can safely store stuff like lastDispatchTime on it later if it doesn't have physics
+  if (!entities.physics) {
+    entities.physics = {};
+  }
+
   // Add lastDispatchTime to physics state if not present
   if (!entities.physics.lastDispatchTime) {
     entities.physics.lastDispatchTime = 0;
