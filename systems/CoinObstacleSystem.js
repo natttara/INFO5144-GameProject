@@ -10,9 +10,16 @@ const HISTORY_LENGTH = 120; // Keep 2 seconds of history at 60fps
 const obstacleHistory = new Map();
 
 const CoinObstacleSystem = (entities, { time }) => {
-  const world = entities.physics.world;
+  //Only try to access .world if entities.physics is defined. otherwise, just return undefined instead of crashing.
+  const world = entities.physics?.world;
   const screenHeight = Constants.SCREEN_HEIGHT;
   const now = time.current;
+
+  // confirm world access - safety net that prevents random crashes
+  if(!world){
+    console.warn("World is undefined -skipping spawn");
+    return entities;
+  }
 
   // If rewinding or invulnerable, don't move or spawn obstacles
   if (CoinObstacleSystem.isRewinding || CoinObstacleSystem.isInvulnerable) {
