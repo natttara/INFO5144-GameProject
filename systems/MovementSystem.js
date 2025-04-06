@@ -2,7 +2,7 @@ import Constants from "../Constants";
 
 // Keep track of floor offset history
 const floorHistory = [];
-const HISTORY_LENGTH = 120; // Match collision system's 2 second history
+const HISTORY_LENGTH = 120;
 
 let isRewinding = false;
 const baseScrollSpeed = 3;
@@ -15,7 +15,6 @@ const MovementSystem = (entities, { time, dispatch }) => {
   const coin = entities.coin?.body;
   const obstacle = entities.obstacle?.body;
 
-  // create an empty one so we can safely store stuff like lastDispatchTime on it later if it doesn't have physics
   if (!entities.physics) {
     entities.physics = {};
   }

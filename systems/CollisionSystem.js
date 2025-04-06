@@ -2,9 +2,8 @@ import Matter from "matter-js";
 import CoinObstacleSystem from "./CoinObstacleSystem";
 import MovementSystem from "./MovementSystem";
 
-const INVULNERABLE_DURATION = 1500; // 1.5 seconds of invulnerability
-// const STARTING_X = 60;
-const BOUNCE_DURATION = 25; // Short duration for state change
+const INVULNERABLE_DURATION = 1500; // 1.5 seconds of invulnerability where no damage is taken
+const BOUNCE_DURATION = 25;
 
 // Create a state object to avoid closure issues
 const gameState = {
@@ -25,7 +24,9 @@ const CollisionSystem = (entities, { dispatch, time }) => {
     return entities;
   }
   if (!world) {
-    console.warn("CollisionSystem: physics.world is undefined - skipping this frame");
+    console.warn(
+      "CollisionSystem: physics.world is undefined - skipping this frame"
+    );
     return entities;
   }
 
@@ -70,14 +71,13 @@ const CollisionSystem = (entities, { dispatch, time }) => {
 
       // Reset collision filter to normal
       if (cat.body) {
-        cat.body.collisionFilter.mask = 0xffffffff; // Collide with everything
+        cat.body.collisionFilter.mask = 0xffffffff;
       }
     }
   }
 
-  // Always ensure collision detection is set up
+  // Ensure collision detection is set up
   if (!engine.collisionStartHandler) {
-    // Set up collision handler
     const collisionHandler = (event) => {
       event.pairs.forEach((pair) => {
         const { bodyA, bodyB } = pair;

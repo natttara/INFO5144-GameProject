@@ -4,7 +4,7 @@ import Images from "../Images";
 
 // Keep track of background element positions
 const backgroundHistory = [];
-const HISTORY_LENGTH = 120; // Match collision system's 2 second history
+const HISTORY_LENGTH = 120;
 
 const Background = ({ offsetX, backgroundWidth, isRewinding }) => {
   const [backgroundOffset, setBackgroundOffset] = useState(0);
@@ -16,7 +16,7 @@ const Background = ({ offsetX, backgroundWidth, isRewinding }) => {
   const [currentBush2, setCurrentBush2] = useState(Images.bush2);
   const lastUpdateRef = useRef(Date.now());
   const animationFrameRef = useRef(null);
-  const parallaxSpeed = 1.5; // Base speed
+  const parallaxSpeed = 1.5;
   const imageWidth = 1363;
   const screenWidth = 800;
 
@@ -124,7 +124,7 @@ const Background = ({ offsetX, backgroundWidth, isRewinding }) => {
         animationFrameRef.current = null;
       }
     };
-  }, [isRewinding]); // Add isRewinding as a dependency
+  }, [isRewinding]);
 
   return (
     <View style={styles.container}>

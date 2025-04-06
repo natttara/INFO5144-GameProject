@@ -10,13 +10,11 @@ const HISTORY_LENGTH = 120; // Keep 2 seconds of history at 60fps
 const obstacleHistory = new Map();
 
 const CoinObstacleSystem = (entities, { time }) => {
-  //Only try to access .world if entities.physics is defined. otherwise, just return undefined instead of crashing.
   const world = entities.physics?.world;
   const screenHeight = Constants.SCREEN_HEIGHT;
   const now = time.current;
 
-  // confirm world access - safety net that prevents random crashes
-  if(!world){
+  if (!world) {
     console.warn("World is undefined -skipping spawn");
     return entities;
   }
@@ -118,7 +116,6 @@ const CoinObstacleSystem = (entities, { time }) => {
   Object.keys(entities).forEach((key) => {
     const entity = entities[key];
     if (key.startsWith("obstacle") || key.startsWith("coin")) {
-      // Apply the entity's current scroll speed
       Matter.Body.translate(entity.body, {
         x: entity.scrollSpeed,
         y: 0,
@@ -139,7 +136,7 @@ const CoinObstacleSystem = (entities, { time }) => {
 // Initialize static properties after defining CoinObstacleSystem
 CoinObstacleSystem.isRewinding = false;
 CoinObstacleSystem.isInvulnerable = false;
-CoinObstacleSystem.baseScrollSpeed = -4; // Reduced from -8 to -4 for slower movement
+CoinObstacleSystem.baseScrollSpeed = -4;
 
 // Static methods
 CoinObstacleSystem.setRewinding = (value) => {
@@ -150,7 +147,7 @@ CoinObstacleSystem.setInvulnerable = (value) => {
   CoinObstacleSystem.isInvulnerable = value;
 };
 
-// New method to teleport obstacle
+// Method to teleport obstacle
 CoinObstacleSystem.teleportObstacle = (entities, obstacleId) => {
   const obstacle = entities[obstacleId];
   if (obstacle) {
@@ -165,7 +162,7 @@ CoinObstacleSystem.teleportObstacle = (entities, obstacleId) => {
       }
     });
 
-    // Teleport to just right of the screen or rightmost obstacle
+    // Teleport to right of the screen or rightmost object while maintainging min distance between obstacles
     const newX = Math.max(
       Constants.SCREEN_WIDTH + 50,
       rightmostX + MIN_SPACING
