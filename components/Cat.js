@@ -50,7 +50,7 @@ const Cat = ({
     }
   }, [action]);
 
-  // Also trigger animation changes when isRunning changes
+  // Trigger animation changes when isRunning changes
   useEffect(() => {
     if (catRef.current) {
       if (!isRunning) {
@@ -69,23 +69,12 @@ const Cat = ({
     }
   }, [isRunning]);
 
-  // Calculate position based on physics body if available, otherwise use style
   const position = body
     ? {
         left: body.position.x - size / 2,
         top: body.position.y - size / 2,
       }
     : {};
-
-  const onPlayComplete = () => {
-    if (action === "jump") {
-      catRef.current?.play({
-        type: "run",
-        fps: 8,
-        loop: true,
-      });
-    }
-  };
 
   return (
     <View

@@ -33,7 +33,7 @@ const GameScene = ({ onExitToStart }) => {
   const [gameEntities, setGameEntities] = useState(() => entities());
   const gameEntitiesRef = useRef(gameEntities);
 
-  // Load jump, hit, coin sound 
+  // Load jump, hit, coin sound
   useEffect(() => {
     const loadSounds = async () => {
       try {
@@ -50,10 +50,10 @@ const GameScene = ({ onExitToStart }) => {
         collisionSoundRef.current = hit;
 
         const { sound: coin } = await Audio.Sound.createAsync(
-        require("./assets/sounds/Coin.mp3"), 
-        { isLooping: false, volume: 1 }
-      );
-      coinSoundRef.current = coin;
+          require("./assets/sounds/Coin.mp3"),
+          { isLooping: false, volume: 1 }
+        );
+        coinSoundRef.current = coin;
       } catch (error) {
         console.warn("Error loading sounds:", error);
       }
@@ -118,7 +118,7 @@ const GameScene = ({ onExitToStart }) => {
         jumpSoundRef.current.replayAsync();
       }
 
-      try{
+      try {
         Matter.Body.setVelocity(catEntity.body, { x: 0, y: -10 });
         // Set cat action to jump
         if (catEntity.renderer) {
@@ -127,32 +127,32 @@ const GameScene = ({ onExitToStart }) => {
             // Reset to run after jump animation
             if (isRunning && catEntity) {
               catEntity.action = "run";
-              setTimeout(() => setCanJump(true), 200); 
+              setTimeout(() => setCanJump(true), 200);
             }
           }, 700);
         }
-      }catch (error) {
+      } catch (error) {
         console.warn("Failed to jump:", error);
       }
     }
   };
 
   const onEvent = useCallback((e) => {
-  if (e.type === "floor-offset") {
-    setOffsetX(e.offsetX);
-    setBackgroundWidth(e.backgroundWidth);
-  } else if (e.type === "coin-collected") {
-    // Play coin sound
-    if (coinSoundRef.current) {
-      coinSoundRef.current.replayAsync();
-    }
-    setScore((prev) => {
-      const newScore = prev + 1;
-      if (newScore >= 5) {
-        setGameStatus("win");
-        setIsRunning(false);
+    if (e.type === "floor-offset") {
+      setOffsetX(e.offsetX);
+      setBackgroundWidth(e.backgroundWidth);
+    } else if (e.type === "coin-collected") {
+      // Play coin sound
+      if (coinSoundRef.current) {
+        coinSoundRef.current.replayAsync();
       }
-      return newScore;
+      setScore((prev) => {
+        const newScore = prev + 1;
+        if (newScore >= 5) {
+          setGameStatus("win");
+          setIsRunning(false);
+        }
+        return newScore;
       });
     } else if (e.type === "hit-obstacle") {
       console.log("Hit obstacle event received");
@@ -175,10 +175,9 @@ const GameScene = ({ onExitToStart }) => {
           gameEntitiesRef.current.cat.action = "run";
         }
       }, 500);
-      
     } else if (e.type === "background-rewind") {
       setIsRewinding(e.isRewinding);
-    } 
+    }
   }, []);
 
   const handleRestart = () => {
@@ -190,8 +189,8 @@ const GameScene = ({ onExitToStart }) => {
 
     // Reset entities
     const newEntities = entities();
-    setGameEntities(newEntities);  // update state for <GameEngine />
-    gameEntitiesRef.current = newEntities; // update ref for logic use
+    setGameEntities(newEntities);
+    gameEntitiesRef.current = newEntities;
 
     if (gameEngineRef.current) {
       gameEngineRef.current.swap(newEntities);
@@ -213,11 +212,7 @@ const GameScene = ({ onExitToStart }) => {
       <View style={styles.heartAndCoin}>
         <View style={styles.heartContainer}>
           {[...Array(lives > 0 ? lives : 0)].map((_, i) => (
-            <Image
-              key={i}
-              source={Images.heart}
-              style={styles.heart}
-            />
+            <Image key={i} source={Images.heart} style={styles.heart} />
           ))}
         </View>
         <View style={styles.coinContainer}>
@@ -234,7 +229,7 @@ const GameScene = ({ onExitToStart }) => {
         onEvent={onEvent}
       />
 
-      {!gameStatus && !showPauseScreen &&(
+      {!gameStatus && !showPauseScreen && (
         <View style={styles.controlsRow}>
           <JumpButton onPress={handleJump} />
           <PauseButton onPress={togglePause} />
@@ -251,10 +246,7 @@ const GameScene = ({ onExitToStart }) => {
       )}
 
       {showPauseScreen && !gameStatus && (
-        <PauseScreen
-          onResume={togglePause}
-          onExitToStart={onExitToStart}
-        />
+        <PauseScreen onResume={togglePause} onExitToStart={onExitToStart} />
       )}
     </View>
   );

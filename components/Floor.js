@@ -24,7 +24,6 @@ const Floor = (props) => {
   );
 };
 
-// Matter.js physics wrapper
 export default (world, pos, size, image) => {
   const body = Matter.Bodies.rectangle(
     Math.round(pos.x),
@@ -32,7 +31,7 @@ export default (world, pos, size, image) => {
     size.width,
     size.height,
     {
-      isStatic: true, // Floor should not move
+      isStatic: true,
       label: "Floor",
       friction: 1,
     }

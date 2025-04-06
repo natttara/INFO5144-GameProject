@@ -58,7 +58,6 @@ export default () => {
     }
   );
 
-  // Add bodies to world
   Matter.World.add(world, [catBody, floorBody]);
 
   return {
