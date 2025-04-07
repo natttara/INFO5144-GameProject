@@ -1,5 +1,5 @@
 # INFO5144-GameProject
-3D Physics-Based Game using  React Native Game Engine &amp; Matter.js
+2D Physics-Based Game using  React Native Game Engine &amp; Matter.js
 
 ## 📌 INFO5144 - Game Project ##
 Course: INFO5144  
@@ -9,7 +9,7 @@ Group Members: Nattar and Elisha
 ---
 
 ## 🎲 Introduction ##
-This project is a 3D platform game where the player must collect coins, avoid obstacle, and complete levels while utilizing physics-based mechanics. The game includes collision detection, scoring, UI controls.
+This project is a 2D platform game where the player must collect coins, avoid obstacle, and complete levels while utilizing physics-based mechanics. The game includes collision detection, scoring, UI controls.
 
 ---
 
