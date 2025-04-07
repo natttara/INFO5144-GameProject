@@ -2,10 +2,6 @@ import React, { useEffect, useState, useRef } from "react";
 import { View, Image, StyleSheet } from "react-native";
 import Images from "../Images";
 
-// Keep track of background element positions
-const backgroundHistory = [];
-const HISTORY_LENGTH = 120;
-
 const Background = ({ offsetX, backgroundWidth, isRewinding }) => {
   const [backgroundOffset, setBackgroundOffset] = useState(0);
   const [treeOffset, setTreeOffset] = useState(0);
@@ -20,53 +16,12 @@ const Background = ({ offsetX, backgroundWidth, isRewinding }) => {
   const imageWidth = 1363;
   const screenWidth = 800;
 
-  // Store positions in history
-  useEffect(() => {
-    if (!isRewinding) {
-      backgroundHistory.push({
-        backgroundOffset,
-        treeOffset,
-        bushOffset,
-        currentTree1,
-        currentTree2,
-        currentBush1,
-        currentBush2,
-        time: Date.now(),
-      });
-
-      if (backgroundHistory.length > HISTORY_LENGTH) {
-        backgroundHistory.shift();
-      }
-    }
-  }, [backgroundOffset, treeOffset, bushOffset, isRewinding]);
-
-  // Handle rewind state
-  useEffect(() => {
-    if (isRewinding && backgroundHistory.length > 0) {
-      // When rewinding, restore the previous state
-      const pastState = backgroundHistory[backgroundHistory.length - 1];
-      setBackgroundOffset(pastState.backgroundOffset);
-      setTreeOffset(pastState.treeOffset);
-      setBushOffset(pastState.bushOffset);
-      setCurrentTree1(pastState.currentTree1);
-      setCurrentTree2(pastState.currentTree2);
-      setCurrentBush1(pastState.currentBush1);
-      setCurrentBush2(pastState.currentBush2);
-
-      // Cancel any ongoing animation
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-        animationFrameRef.current = null;
-      }
-    }
-  }, [isRewinding]);
-
   // Animation update
   useEffect(() => {
     let isAnimating = true;
 
     const animate = () => {
-      if (!isAnimating || isRewinding) {
+      if (!isAnimating) {
         return;
       }
 
@@ -113,18 +68,10 @@ const Background = ({ offsetX, backgroundWidth, isRewinding }) => {
       animationFrameRef.current = requestAnimationFrame(animate);
     };
 
-    if (!isRewinding) {
+    if (isAnimating) {
       animate();
     }
-
-    return () => {
-      isAnimating = false;
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-        animationFrameRef.current = null;
-      }
-    };
-  }, [isRewinding]);
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -189,15 +136,6 @@ const Background = ({ offsetX, backgroundWidth, isRewinding }) => {
       </View>
     </View>
   );
-};
-
-// Add rewind function to Background component
-Background.rewindBackground = (frames) => {
-  if (backgroundHistory.length >= frames) {
-    const pastState = backgroundHistory[backgroundHistory.length - frames];
-    return pastState;
-  }
-  return null;
 };
 
 const styles = StyleSheet.create({

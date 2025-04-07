@@ -2,7 +2,6 @@ import Constants from "../Constants";
 
 // Keep track of floor offset history
 const floorHistory = [];
-const HISTORY_LENGTH = 120;
 
 let isRewinding = false;
 const baseScrollSpeed = 3;
@@ -24,23 +23,13 @@ const MovementSystem = (entities, { time, dispatch }) => {
     entities.physics.lastDispatchTime = 0;
   }
 
-  // Store floor positions in history when not rewinding
-  if (!isRewinding && floor1 && floor2) {
+  // Store floor positions
+  if (floor1 && floor2) {
     floorHistory.push({
       floor1Offset: floor1.offsetX,
       floor2Offset: floor2.offsetX,
       time: time.current,
     });
-
-    // Keep history at fixed length
-    if (floorHistory.length > HISTORY_LENGTH) {
-      floorHistory.shift();
-    }
-  }
-
-  // If rewinding, don't update any positions
-  if (isRewinding) {
-    return entities;
   }
 
   // Only update positions if not rewinding
@@ -92,31 +81,6 @@ const MovementSystem = (entities, { time, dispatch }) => {
   }
 
   return entities;
-};
-
-// Add function to rewind floor positions
-MovementSystem.rewindFloors = (entities, frames) => {
-  if (floorHistory.length >= frames) {
-    const pastState = floorHistory[floorHistory.length - frames];
-    if (entities.floor1) {
-      entities.floor1.offsetX = pastState.floor1Offset;
-      entities.floor1.renderer = (
-        <entities.floor1.renderer.type
-          {...entities.floor1.renderer.props}
-          offsetX={Math.round(pastState.floor1Offset)}
-        />
-      );
-    }
-    if (entities.floor2) {
-      entities.floor2.offsetX = pastState.floor2Offset;
-      entities.floor2.renderer = (
-        <entities.floor2.renderer.type
-          {...entities.floor2.renderer.props}
-          offsetX={Math.round(pastState.floor2Offset)}
-        />
-      );
-    }
-  }
 };
 
 // Add functions to control system state

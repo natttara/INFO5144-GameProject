@@ -4,7 +4,6 @@ import Constants from "../Constants";
 let lastSpawnTime = 0;
 const MIN_SPACING = 400; // Minimum distance between items
 const SPAWN_INTERVAL = 2000; // Base spawn interval
-const HISTORY_LENGTH = 120; // Keep 2 seconds of history at 60fps
 
 // Keep track of obstacle positions
 const obstacleHistory = new Map();
@@ -19,8 +18,7 @@ const CoinObstacleSystem = (entities, { time }) => {
     return entities;
   }
 
-  // If rewinding or invulnerable, don't move or spawn obstacles
-  if (CoinObstacleSystem.isRewinding || CoinObstacleSystem.isInvulnerable) {
+  if (CoinObstacleSystem.isInvulnerable) {
     return entities;
   }
 
@@ -34,22 +32,6 @@ const CoinObstacleSystem = (entities, { time }) => {
       (key.startsWith("obstacle") || key.startsWith("coin"))
     ) {
       rightmostX = Math.max(rightmostX, entity.body.position.x);
-
-      // Store obstacle positions
-      if (key.startsWith("obstacle")) {
-        if (!obstacleHistory.has(key)) {
-          obstacleHistory.set(key, []);
-        }
-        const history = obstacleHistory.get(key);
-        history.push({
-          x: entity.body.position.x,
-          y: entity.body.position.y,
-          time: now,
-        });
-        if (history.length > HISTORY_LENGTH) {
-          history.shift();
-        }
-      }
     }
   });
 
