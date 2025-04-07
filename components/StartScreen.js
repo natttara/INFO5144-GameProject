@@ -63,6 +63,12 @@ const StartScreen = ({ onStart }) => {
           </TouchableOpacity>
         </View>
 
+        <View style={styles.nameBox}>
+          <Text style={styles.nameText}>
+              Created by : Nattar and Elisha
+          </Text>
+        </View>
+
         {/* Cat container */}
         <Animated.View
           style={[
@@ -98,6 +104,20 @@ const styles = StyleSheet.create({
   welcomeText: {
     fontFamily: "BakBak One",
     fontSize: 22,
+    fontWeight: "bold",
+    color: "white",
+    textShadowColor: "rgba(0, 0, 0, 0.75)",
+    textShadowOffset: { width: -1, height: 1 },
+    textShadowRadius: 10,
+  },
+  nameBox:{
+    alignItems: "center",
+    justifyContent: "center",
+    top: -60,
+  },
+  nameText: {
+    fontFamily: "BakBak One",
+    fontSize: 20,
     fontWeight: "bold",
     color: "white",
     textShadowColor: "rgba(0, 0, 0, 0.75)",
