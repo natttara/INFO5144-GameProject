@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { View, Image, StyleSheet } from "react-native";
 import Images from "../Images";
 
-const Background = ({ offsetX, backgroundWidth, isRewinding }) => {
+const Background = () => {
   const [backgroundOffset, setBackgroundOffset] = useState(0);
   const [treeOffset, setTreeOffset] = useState(0);
   const [bushOffset, setBushOffset] = useState(0);
